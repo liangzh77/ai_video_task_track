@@ -14,9 +14,15 @@ export const authConfig: NextAuthConfig = {
       const isDashboardPage = nextUrl.pathname.startsWith('/dashboard')
       const isPublicRoute = nextUrl.pathname === '/'
 
+      // Helper function to create redirect URL
+      const createRedirectUrl = (path: string) => {
+        const url = new URL(path, nextUrl.origin)
+        return Response.redirect(url)
+      }
+
       if (isAuthPage) {
         if (isLoggedIn) {
-          return Response.redirect(new URL(isAdmin ? '/admin' : '/dashboard', nextUrl))
+          return createRedirectUrl(isAdmin ? '/admin' : '/dashboard')
         }
         return true
       }
@@ -26,15 +32,15 @@ export const authConfig: NextAuthConfig = {
       }
 
       if (isAdminPage && !isAdmin) {
-        return Response.redirect(new URL('/dashboard', nextUrl))
+        return createRedirectUrl('/dashboard')
       }
 
       if (isDashboardPage && isAdmin) {
-        return Response.redirect(new URL('/admin', nextUrl))
+        return createRedirectUrl('/admin')
       }
 
       if (isPublicRoute && isLoggedIn) {
-        return Response.redirect(new URL(isAdmin ? '/admin' : '/dashboard', nextUrl))
+        return createRedirectUrl(isAdmin ? '/admin' : '/dashboard')
       }
 
       return true
@@ -60,7 +66,7 @@ export const authConfig: NextAuthConfig = {
       return session
     },
   },
-  providers: [], // Providers are added in auth.ts
+  providers: [],
   session: {
     strategy: 'jwt',
   },
