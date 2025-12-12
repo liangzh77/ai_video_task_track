@@ -1,50 +1,165 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+  ============================================================================
+  同步影响报告
+  ============================================================================
+  版本变更: N/A → 1.0.0 (初始批准)
 
-## Core Principles
+  修改的原则: N/A (初始版本)
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+  新增章节:
+    - 核心原则 (5 条原则)
+    - 开发约束
+    - 部署与运维
+    - 治理
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+  删除章节: N/A (初始版本)
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+  需更新的模板:
+    - .specify/templates/plan-template.md ✅ 兼容 (使用宪法检查)
+    - .specify/templates/spec-template.md ✅ 兼容 (技术无关)
+    - .specify/templates/tasks-template.md ✅ 兼容 (通用结构)
+    - .specify/templates/checklist-template.md ✅ 兼容 (通用模板)
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+  后续待办: 无
+  ============================================================================
+-->
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+# AI 视频任务跟踪项目宪法
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## 核心原则
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### 一、简单优先
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+每个实现决策必须优先选择最简单的可行方案。复杂性必须有具体的必要性证据来支撑。
+"以后可能会用到"不是有效的理由。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**规则**:
+- 优先使用标准库或广泛采用的依赖，而非自定义实现
+- 优先使用扁平结构，避免深层嵌套
+- 在证明存在重复之前避免抽象（三次法则）
+- 立即删除死代码；不要注释掉
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+**理由**: 简单的代码更容易阅读、调试、维护和上手。过早优化和抽象会产生技术债务。
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### 二、代码清晰
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+代码必须通过清晰的命名、逻辑结构和一致的模式实现自文档化。
+注释应该解释"为什么"，而不是"是什么"。
+
+**规则**:
+- 使用描述性的变量和函数名（英文）
+- 保持函数小巧，单一职责
+- 保持一致的代码格式（由 linter/formatter 强制执行）
+- 逻辑地组织导入和依赖
+- 禁止使用没有命名常量的魔术数字或字符串
+
+**理由**: 清晰的代码减少认知负担，让任何开发者（包括未来的自己）都能快速理解。
+
+### 三、可维护性
+
+所有代码必须为长期维护而结构化。一个区域的更改不应该级联到不相关的区域。
+
+**规则**:
+- 关注点分离：UI 组件、业务逻辑和数据访问必须分离
+- 依赖必须单向流动（避免循环依赖）
+- 配置必须外部化（使用环境变量存储密钥和设置）
+- 错误消息必须可操作且包含上下文
+
+**理由**: 可维护的代码降低变更成本，使持续改进成为可能，而不用担心破坏现有功能。
+
+### 四、Vercel 优化部署
+
+应用程序必须为在 Vercel 上无缝部署而设计。架构决策应该利用 Vercel 的优势。
+
+**规则**:
+- 使用 Next.js 或兼容框架以获得完整的 Vercel 功能支持
+- 使用 Serverless 函数处理后端逻辑（API 路由）
+- 在内容允许的情况下优先使用静态生成（SSG > SSR > CSR）
+- 通过 Vercel 仪表板管理环境变量
+- 构建输出必须与 Vercel 的构建系统兼容
+
+**理由**: 针对部署平台优化可以降低运维复杂性，最大化 Vercel 边缘网络的性能优势。
+
+### 五、Web 应用标准
+
+应用程序必须遵循现代 Web 开发在安全性、可访问性和性能方面的最佳实践。
+
+**规则**:
+- 所有通信强制使用 HTTPS（Vercel 默认）
+- 在客户端和服务器端都进行输入验证
+- 响应式设计，支持移动端和桌面端
+- Core Web Vitals 应达到"良好"阈值
+- 使用语义化 HTML 以提高可访问性
+
+**理由**: Web 标准确保应用程序安全、对所有用户可用，并在各种设备和网络条件下表现良好。
+
+## 开发约束
+
+### 技术栈
+
+- **框架**: Next.js（新项目优先使用 App Router）
+- **语言**: TypeScript（启用严格模式）
+- **样式**: CSS Modules、Tailwind CSS 或 CSS-in-JS（每个项目选择一种方式）
+- **状态管理**: 优先使用 React 内置功能（useState、useContext）；只有在有充分理由时才使用外部库
+- **数据获取**: 新代码使用 React Server Components 和 Server Actions
+
+### 禁止的模式
+
+- 禁止使用基于类的 React 组件（使用函数组件配合 hooks）
+- 禁止使用 `any` 类型，除非有明确理由并添加 TODO 注释
+- 禁止使用内联样式，除非是真正的动态值
+- 禁止直接操作 DOM（必要时使用 React refs）
+- 禁止使用有已知安全漏洞的 npm 包
+
+### 依赖策略
+
+添加任何新依赖之前：
+1. 验证活跃维护（6 个月内有提交）
+2. 检查对包体积的影响
+3. 确认与现有依赖没有功能重复
+4. 优先选择零依赖或最小依赖的包
+
+## 部署与运维
+
+### 环境管理
+
+- **开发环境**: `npm run dev` 带热重载
+- **预览环境**: PR 时自动部署 Vercel 预览
+- **生产环境**: main/master 分支自动部署到生产
+
+### 环境变量
+
+- 客户端暴露的变量以 `NEXT_PUBLIC_` 为前缀
+- 永远不要将密钥提交到代码库
+- 在 `.env.example` 中记录所有必需的环境变量
+
+### 监控与日志
+
+- 使用 Vercel Analytics 监控 Core Web Vitals
+- 控制台日志仅用于开发；生产环境使用结构化日志
+- 生产环境集成错误跟踪（Sentry 或同类工具）
+
+## 治理
+
+### 修订程序
+
+1. 通过修改此文件的 Pull Request 提出变更
+2. 为每个变更记录理由
+3. 遵循语义化版本进行版本升级：
+   - MAJOR: 不向后兼容的原则变更或删除
+   - MINOR: 新原则或重大扩展
+   - PATCH: 澄清和措辞改进
+4. 如果原则影响模板指导，则更新相关模板
+
+### 合规审查
+
+- 所有 Pull Request 必须验证是否符合核心原则
+- 代码审查在请求变更时应该引用具体原则
+- 违反宪法要求修改代码或修订原则
+
+### 版本控制
+
+此宪法与代码库一起进行版本控制。宪法优先于冲突的文档，
+但必须与项目 README 和开发者指南保持一致。
+
+**版本**: 1.0.0 | **批准日期**: 2025-12-12 | **最后修订**: 2025-12-12
