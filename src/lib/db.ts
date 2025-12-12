@@ -1,33 +1,25 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
-import { neon } from '@neondatabase/serverless'
+import { Pool } from '@neondatabase/serverless'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  // Try multiple possible variable names
   const connectionString =
     process.env.DATABASE_URL ||
-    process.env.DATABASE2_DATABASE_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.DATABASE2_POSTGRES_URL
-
-  console.log('Checking env vars:')
-  console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET')
-  console.log('- DATABASE2_DATABASE_URL:', process.env.DATABASE2_DATABASE_URL ? 'SET' : 'NOT SET')
-  console.log('- POSTGRES_URL:', process.env.POSTGRES_URL ? 'SET' : 'NOT SET')
+    process.env.DATABASE2_DATABASE_URL
 
   if (!connectionString) {
-    throw new Error('No database connection string found in environment variables')
+    throw new Error('DATABASE_URL is not set')
   }
 
-  console.log('Using connection string, length:', connectionString.length)
+  console.log('Creating Prisma client with connection string length:', connectionString.length)
 
-  const sql = neon(connectionString)
+  const pool = new Pool({ connectionString })
   // @ts-expect-error - Type compatibility
-  const adapter = new PrismaNeon(sql)
+  const adapter = new PrismaNeon(pool)
 
   return new PrismaClient({
     adapter,
