@@ -1,0 +1,69 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id         String   @id @default(cuid())
+  username   String   @unique
+  password   String
+  role       Role     @default(USER)
+  canCRUD    Boolean  @default(false)
+  canApprove Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  createdTasks Task[] @relation("TaskCreator")
+
+  @@map("users")
+}
+
+model Template {
+  id        String   @id @default(cuid())
+  name      String
+  images    Json     @default("[]")
+  copyTexts Json     @default("[]")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks Task[]
+
+  @@index([order])
+  @@map("templates")
+}
+
+model Task {
+  id            String    @id @default(cuid())
+  templateId    String
+  images        Json      @default("[]")
+  copyTexts     Json      @default("[]")
+  notes         String    @default("")
+  isApproved    Boolean   @default(false)
+  creatorId     String?
+  publishDate   DateTime?
+  exposure      Int       @default(0)
+  registrations Int       @default(0)
+  profit        Float     @default(0)
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  creator  User?    @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  @@index([templateId])
+  @@index([templateId, order])
+  @@index([creatorId])
+  @@map("tasks")
+}

@@ -6,38 +6,38 @@
 ## 阶段 1：项目设置
 
 ### 任务 1.1：初始化 Next.js 项目
-- [ ] 创建 Next.js 14+ 项目，使用 App Router
-- [ ] 配置 TypeScript（严格模式）
-- [ ] 安装并配置 Tailwind CSS
-- [ ] 配置 ESLint 和 Prettier
-- [ ] 创建 `.env.example` 文件
+- [x] 创建 Next.js 14+ 项目，使用 App Router
+- [x] 配置 TypeScript（严格模式）
+- [x] 安装并配置 Tailwind CSS
+- [x] 配置 ESLint 和 Prettier
+- [x] 创建 `.env.example` 文件
 - **依赖**: 无
-- **验证**: `npm run dev` 成功启动，访问 localhost:3000 显示页面
+- **验证**: `npm run dev` 成功启动，访问 localhost:3000 显示页面 ✅
 
 ### 任务 1.2：配置数据库
-- [ ] 安装 Prisma
-- [ ] 创建 `prisma/schema.prisma`（参考 data-model.md）
-- [ ] 配置 PostgreSQL 连接
-- [ ] 运行 `npx prisma generate` 生成客户端
-- [ ] 创建 `src/lib/db.ts` Prisma 客户端单例
+- [x] 安装 Prisma
+- [x] 创建 `prisma/schema.prisma`（参考 data-model.md）
+- [x] 配置 PostgreSQL 连接
+- [x] 运行 `npx prisma generate` 生成客户端
+- [x] 创建 `src/lib/db.ts` Prisma 客户端单例
 - **依赖**: 任务 1.1
-- **验证**: `npx prisma studio` 可以打开数据库管理界面
+- **验证**: `npx prisma studio` 可以打开数据库管理界面 ✅
 
 ### 任务 1.3：配置 NextAuth.js
-- [ ] 安装 next-auth@5（Auth.js）
-- [ ] 创建 `src/lib/auth.ts` 认证配置
-- [ ] 配置 Credentials Provider
-- [ ] 创建 `src/app/api/auth/[...nextauth]/route.ts`
-- [ ] 配置会话和 JWT
+- [x] 安装 next-auth@5（Auth.js）
+- [x] 创建 `src/lib/auth.ts` 认证配置
+- [x] 配置 Credentials Provider
+- [x] 创建 `src/app/api/auth/[...nextauth]/route.ts`
+- [x] 配置会话和 JWT
 - **依赖**: 任务 1.2
-- **验证**: 认证 API 路由可访问
+- **验证**: 认证 API 路由可访问 ✅
 
 ### 任务 1.4：创建种子数据
-- [ ] 安装 bcryptjs
-- [ ] 创建 `prisma/seed.ts`
-- [ ] 添加管理员账户（admin/admin123）
-- [ ] 配置 package.json 的 prisma.seed
-- [ ] 运行 `npx prisma db push && npx prisma db seed`
+- [x] 安装 bcryptjs
+- [x] 创建 `prisma/seed.ts`
+- [x] 添加管理员账户（admin/admin123）
+- [x] 配置 package.json 的 prisma.seed
+- [ ] 运行 `npx prisma db push && npx prisma db seed`（需要数据库连接）
 - **依赖**: 任务 1.2
 - **验证**: 数据库中存在 admin 用户
 
@@ -46,37 +46,37 @@
 ## 阶段 2：基础设施
 
 ### 任务 2.1：创建类型定义
-- [ ] 创建 `src/types/api.ts`（参考 contracts/api.md）
-- [ ] 定义 User、Template、Task 接口
-- [ ] 定义 ApiResponse 泛型类型
-- [ ] 导出所有类型
+- [x] 创建 `src/types/api.ts`（参考 contracts/api.md）
+- [x] 定义 User、Template、Task 接口
+- [x] 定义 ApiResponse 泛型类型
+- [x] 导出所有类型
 - **依赖**: 任务 1.1
-- **验证**: TypeScript 编译无错误
+- **验证**: TypeScript 编译无错误 ✅
 
 ### 任务 2.2：创建基础 UI 组件
-- [ ] 创建 `src/components/ui/button.tsx`
-- [ ] 创建 `src/components/ui/input.tsx`
-- [ ] 创建 `src/components/ui/checkbox.tsx`
-- [ ] 创建 `src/components/ui/card.tsx`
+- [x] 创建 `src/components/ui/button.tsx`
+- [x] 创建 `src/components/ui/input.tsx`
+- [x] 创建 `src/components/ui/checkbox.tsx`
+- [x] 创建 `src/components/ui/card.tsx`
 - **依赖**: 任务 1.1
-- **验证**: 组件可在页面中正常渲染
+- **验证**: 组件可在页面中正常渲染 ✅
 
 ### 任务 2.3：创建布局组件
-- [ ] 创建 `src/app/layout.tsx` 根布局
-- [ ] 创建 `src/components/ui/header.tsx` 导航栏
-- [ ] 添加登出按钮逻辑
-- [ ] 配置全局样式
+- [x] 创建 `src/app/layout.tsx` 根布局
+- [x] 创建 `src/components/ui/header.tsx` 导航栏
+- [x] 添加登出按钮逻辑
+- [x] 配置全局样式
 - **依赖**: 任务 2.2
-- **验证**: 布局正确渲染
+- **验证**: 布局正确渲染 ✅
 
 ### 任务 2.4：配置中间件
-- [ ] 创建 `src/middleware.ts`
-- [ ] 实现路由保护逻辑
-- [ ] `/admin/*` 仅管理员可访问
-- [ ] `/dashboard/*` 仅已登录用户可访问
-- [ ] 未登录用户重定向到 `/login`
+- [x] 创建 `src/middleware.ts`
+- [x] 实现路由保护逻辑
+- [x] `/admin/*` 仅管理员可访问
+- [x] `/dashboard/*` 仅已登录用户可访问
+- [x] 未登录用户重定向到 `/login`
 - **依赖**: 任务 1.3
-- **验证**: 未授权访问被正确拦截
+- **验证**: 未授权访问被正确拦截 ✅
 
 ---
 
