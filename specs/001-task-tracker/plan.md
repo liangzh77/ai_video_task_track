@@ -19,9 +19,8 @@
 
 **存储**:
 - PostgreSQL（Vercel Postgres 或 Supabase）
-- 图片存储：Vercel Blob 或 Cloudinary
+- 图片存储：Vercel Blob
 
-**测试**: Jest + React Testing Library
 **目标平台**: Web（Vercel 部署）
 **项目类型**: Web 应用（Next.js 全栈）
 

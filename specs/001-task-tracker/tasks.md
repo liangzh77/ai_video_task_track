@@ -110,8 +110,9 @@
 - [ ] 创建 `src/app/api/users/[id]/permissions/route.ts` PATCH
 - [ ] 验证管理员权限
 - [ ] 更新 canCRUD 和 canApprove
+- [ ] 禁止删除管理员账户（返回 403 错误）
 - **依赖**: 任务 3.3
-- **验证**: 权限更新后数据库记录变化
+- **验证**: 权限更新后数据库记录变化；尝试删除 admin 账户返回错误
 
 ### 任务 3.5：实现密码重置 API
 - [ ] 创建 `src/app/api/users/[id]/reset-password/route.ts` POST
@@ -183,11 +184,12 @@
 
 ### 任务 5.2：实现模板列表 API
 - [ ] 创建 `src/app/api/templates/route.ts` GET
+- [ ] 验证非管理员角色（管理员返回 403）
 - [ ] 返回所有模板及其任务
 - [ ] 按 order 字段排序
 - [ ] 包含任务的 creator 信息
 - **依赖**: 任务 1.2, 1.3
-- **验证**: GET /api/templates 返回完整数据
+- **验证**: GET /api/templates 返回完整数据；管理员访问返回 403
 
 ### 任务 5.3：创建模板行组件
 - [ ] 创建 `src/components/template/template-row.tsx`
@@ -286,9 +288,11 @@
 - [ ] 支持拖放上传
 - [ ] 支持点击选择多文件
 - [ ] 显示上传进度
+- [ ] 无效文件类型显示错误提示（非 JPEG/PNG/GIF/WebP）
+- [ ] 文件过大显示错误提示（>5MB）
 - [ ] 上传完成后回调
 - **依赖**: 任务 8.1, 2.2
-- **验证**: 拖放和点击都能上传
+- **验证**: 拖放和点击都能上传；无效文件显示错误消息
 
 ### 任务 8.3：配置拖拽排序
 - [ ] 安装 @dnd-kit/core 和 @dnd-kit/sortable
