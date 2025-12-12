@@ -7,16 +7,23 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL
+  // Try multiple possible variable names
+  const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.DATABASE2_DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE2_POSTGRES_URL
 
-  // Debug logging
+  console.log('Checking env vars:')
+  console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET')
+  console.log('- DATABASE2_DATABASE_URL:', process.env.DATABASE2_DATABASE_URL ? 'SET' : 'NOT SET')
+  console.log('- POSTGRES_URL:', process.env.POSTGRES_URL ? 'SET' : 'NOT SET')
+
   if (!connectionString) {
-    const dbEnvVars = Object.keys(process.env).filter(k => k.toLowerCase().includes('database') || k.toLowerCase().includes('postgres') || k.toLowerCase().includes('neon'))
-    console.error('DATABASE_URL is undefined. Related env vars found:', dbEnvVars)
-    throw new Error(`DATABASE_URL is not set. Found these related vars: ${dbEnvVars.join(', ')}`)
+    throw new Error('No database connection string found in environment variables')
   }
 
-  console.log('DATABASE_URL found, length:', connectionString.length, 'starts with:', connectionString.substring(0, 15))
+  console.log('Using connection string, length:', connectionString.length)
 
   const sql = neon(connectionString)
   // @ts-expect-error - Type compatibility
