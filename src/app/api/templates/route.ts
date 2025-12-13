@@ -59,18 +59,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '模板名称不能为空' }, { status: 400 })
     }
 
-    // Get max order
-    const maxOrder = await prisma.template.aggregate({
-      _max: { order: true },
-    })
+    // Use transaction to reduce database round trips
+    const template = await prisma.$transaction(async (tx) => {
+      const maxOrder = await tx.template.aggregate({
+        _max: { order: true },
+      })
 
-    const template = await prisma.template.create({
-      data: {
-        name: name.trim(),
-        images: JSON.stringify(images),
-        copyTexts: JSON.stringify(copyTexts),
-        order: (maxOrder._max.order ?? -1) + 1,
-      },
+      return tx.template.create({
+        data: {
+          name: name.trim(),
+          images: JSON.stringify(images),
+          copyTexts: JSON.stringify(copyTexts),
+          order: (maxOrder._max.order ?? -1) + 1,
+        },
+      })
     })
 
     return NextResponse.json(template, { status: 201 })

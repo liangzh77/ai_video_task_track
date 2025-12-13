@@ -31,43 +31,56 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '模板 ID 不能为空' }, { status: 400 })
     }
 
-    // Check if template exists
-    const template = await prisma.template.findUnique({
-      where: { id: templateId },
-    })
+    // Use transaction to reduce database round trips
+    const task = await prisma.$transaction(async (tx) => {
+      // Check if template exists
+      const template = await tx.template.findUnique({
+        where: { id: templateId },
+        select: { id: true },
+      })
 
-    if (!template) {
-      return NextResponse.json({ error: '模板不存在' }, { status: 404 })
-    }
+      if (!template) {
+        throw new Error('TEMPLATE_NOT_FOUND')
+      }
 
-    // Get max order for this template
-    const maxOrder = await prisma.task.aggregate({
-      where: { templateId },
-      _max: { order: true },
-    })
+      // Get max order for this template
+      const maxOrder = await tx.task.aggregate({
+        where: { templateId },
+        _max: { order: true },
+      })
 
-    const task = await prisma.task.create({
-      data: {
-        templateId,
-        images: JSON.stringify(images),
-        copyTexts: JSON.stringify(copyTexts),
-        notes,
-        publishDate: publishDate ? new Date(publishDate) : null,
-        exposure,
-        registrations,
-        profit,
-        order: (maxOrder._max.order ?? -1) + 1,
-        creatorId: session.user.id, // Auto-assign creator
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            username: true,
+      return tx.task.create({
+        data: {
+          templateId,
+          images: JSON.stringify(images),
+          copyTexts: JSON.stringify(copyTexts),
+          notes,
+          publishDate: publishDate ? new Date(publishDate) : null,
+          exposure,
+          registrations,
+          profit,
+          order: (maxOrder._max.order ?? -1) + 1,
+          creatorId: session.user.id,
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              username: true,
+            },
           },
         },
-      },
+      })
+    }).catch((error) => {
+      if (error.message === 'TEMPLATE_NOT_FOUND') {
+        return null
+      }
+      throw error
     })
+
+    if (!task) {
+      return NextResponse.json({ error: '模板不存在' }, { status: 404 })
+    }
 
     return NextResponse.json(task, { status: 201 })
   } catch (error) {
