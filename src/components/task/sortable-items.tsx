@@ -179,33 +179,33 @@ function SortableItem({
     )
   }
 
-  // Text item
+  // Text item - 卡片样式，和图片一样高度
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`
-        flex items-center gap-1 group h-[100px]
-        ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
+        relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
+        ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
       `}
       {...attributes}
       {...listeners}
     >
       {isEditing ? (
-        <div className="flex items-center gap-1">
+        <div className="h-full flex items-center justify-center p-2">
           <Input
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleSaveText}
             onKeyDown={handleKeyDown}
             autoFocus
-            className="h-8 text-sm w-32"
+            className="h-8 text-sm w-full"
           />
         </div>
       ) : (
-        <div className="relative">
-          <span
-            className={`text-sm px-2 py-1 bg-gray-100 rounded break-all ${
+        <>
+          <div
+            className={`h-full flex items-center justify-center p-2 ${
               disabled ? '' : 'cursor-pointer hover:bg-gray-200'
             }`}
             onClick={(e) => {
@@ -213,19 +213,28 @@ function SortableItem({
               if (!disabled) setIsEditing(true)
             }}
           >
-            {item.content}
-          </span>
+            <span className="text-sm text-gray-700 text-center break-words line-clamp-4">
+              {item.content}
+            </span>
+          </div>
+
           {!disabled && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
+          )}
+
+          {!disabled && !showDeleteConfirm && (
             <button
+              type="button"
               onClick={handleDeleteClick}
-              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+              className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
             >
               ×
             </button>
           )}
+
           {showDeleteConfirm && (
-            <div className="absolute inset-0 bg-black/70 rounded flex flex-col items-center justify-center gap-1 min-w-[80px]">
-              <span className="text-white text-xs">删除？</span>
+            <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-1">
+              <span className="text-white text-xs">确认删除？</span>
               <div className="flex gap-1">
                 <button
                   onClick={handleConfirmDelete}
@@ -242,7 +251,7 @@ function SortableItem({
               </div>
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   )
