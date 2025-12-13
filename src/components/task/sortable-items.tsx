@@ -361,13 +361,13 @@ export function SortableItems({
             onChange={(e) => setNewText(e.target.value)}
             onKeyDown={handleAddKeyDown}
             placeholder="添加新文案..."
-            className="flex-1 h-8 text-sm max-w-[200px]"
+            className="h-8 text-sm w-[160px]"
           />
           <Button
             size="sm"
             onClick={handleAddText}
             disabled={!newText.trim()}
-            className="h-8"
+            className="h-8 px-4 whitespace-nowrap"
           >
             添加
           </Button>

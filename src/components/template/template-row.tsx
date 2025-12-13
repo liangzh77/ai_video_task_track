@@ -55,6 +55,10 @@ export function TemplateRow({
       }
 
       const updatedTemplate = await response.json()
+      // 解析 items 字段（API 返回的是 JSON 字符串）
+      if (typeof updatedTemplate.items === 'string') {
+        updatedTemplate.items = JSON.parse(updatedTemplate.items)
+      }
       if (onTemplateUpdate) {
         onTemplateUpdate(template.id, updatedTemplate)
       }

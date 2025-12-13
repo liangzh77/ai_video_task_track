@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -22,6 +23,32 @@ import { AddTaskButton } from '@/components/task/add-task-button'
 import { SortableTasks } from '@/components/task/sortable-tasks'
 import type { Template, Task } from '@/types/api'
 
+const COLLAPSED_TEMPLATES_KEY = 'collapsed-templates'
+
+// 获取折叠状态
+function getCollapsedTemplates(): Set<string> {
+  if (typeof window === 'undefined') return new Set()
+  try {
+    const stored = localStorage.getItem(COLLAPSED_TEMPLATES_KEY)
+    if (stored) {
+      return new Set(JSON.parse(stored))
+    }
+  } catch {
+    // ignore
+  }
+  return new Set()
+}
+
+// 保存折叠状态
+function saveCollapsedTemplates(collapsed: Set<string>) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(COLLAPSED_TEMPLATES_KEY, JSON.stringify([...collapsed]))
+  } catch {
+    // ignore
+  }
+}
+
 interface SortableTemplateItemProps {
   template: Template
   onImageClick: (url: string) => void
@@ -37,6 +64,8 @@ interface SortableTemplateItemProps {
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onTasksReorder: (templateId: string, taskIds: string[]) => Promise<void>
   disabled?: boolean
+  isCollapsed: boolean
+  onToggleCollapse: () => void
 }
 
 function SortableTemplateItem({
@@ -54,6 +83,8 @@ function SortableTemplateItem({
   onTaskUpdate,
   onTasksReorder,
   disabled = false,
+  isCollapsed,
+  onToggleCollapse,
 }: SortableTemplateItemProps) {
   const {
     attributes,
@@ -70,15 +101,44 @@ function SortableTemplateItem({
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const taskCount = template.tasks?.length || 0
+
   return (
     <div ref={setNodeRef} style={style} className="space-y-2">
       <div className="flex items-stretch gap-2">
+        {/* Collapse button */}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="flex items-center px-2 bg-gray-50 hover:bg-gray-100 rounded-l-lg border border-r-0 border-gray-200 text-gray-500 hover:text-gray-700"
+          title={isCollapsed ? '展开' : '折叠'}
+        >
+          <svg
+            className={`w-4 h-4 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+          {taskCount > 0 && (
+            <span className="ml-1 text-xs text-gray-400">
+              {taskCount}
+            </span>
+          )}
+        </button>
+
         {/* Drag handle */}
         {canEdit && !disabled && (
           <div
             {...attributes}
             {...listeners}
-            className="flex items-center px-2 cursor-grab active:cursor-grabbing bg-gray-100 hover:bg-gray-200 rounded-l-lg border border-r-0 border-gray-200"
+            className="flex items-center px-2 cursor-grab active:cursor-grabbing bg-gray-100 hover:bg-gray-200 border border-r-0 border-gray-200"
             title="拖动排序"
           >
             <svg
@@ -108,27 +168,31 @@ function SortableTemplateItem({
         </div>
       </div>
 
-      {template.tasks && template.tasks.length > 0 && (
-        <div className="ml-6">
-          <SortableTasks
-            tasks={template.tasks}
-            onImageClick={onImageClick}
-            selectedImageUrl={selectedImageUrl}
-            canEdit={canEdit}
-            canApprove={canApprove}
-            currentUserId={currentUserId}
-            currentUsername={currentUsername}
-            onTaskUpdate={onTaskUpdate}
-            onDeleteTask={onDeleteTask}
-            onReorder={(taskIds) => onTasksReorder(template.id, taskIds)}
-          />
-        </div>
-      )}
+      {!isCollapsed && (
+        <>
+          {template.tasks && template.tasks.length > 0 && (
+            <div className="ml-6">
+              <SortableTasks
+                tasks={template.tasks}
+                onImageClick={onImageClick}
+                selectedImageUrl={selectedImageUrl}
+                canEdit={canEdit}
+                canApprove={canApprove}
+                currentUserId={currentUserId}
+                currentUsername={currentUsername}
+                onTaskUpdate={onTaskUpdate}
+                onDeleteTask={onDeleteTask}
+                onReorder={(taskIds) => onTasksReorder(template.id, taskIds)}
+              />
+            </div>
+          )}
 
-      {canEdit && (
-        <div className="ml-6">
-          <AddTaskButton templateId={template.id} onAdd={onAddTask} />
-        </div>
+          {canEdit && (
+            <div className="ml-6">
+              <AddTaskButton templateId={template.id} onAdd={onAddTask} />
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -167,6 +231,26 @@ export function SortableTemplates({
   onTaskUpdate,
   onTasksReorder,
 }: SortableTemplatesProps) {
+  const [collapsedTemplates, setCollapsedTemplates] = useState<Set<string>>(new Set())
+
+  // 从 localStorage 加载折叠状态
+  useEffect(() => {
+    setCollapsedTemplates(getCollapsedTemplates())
+  }, [])
+
+  const toggleCollapse = useCallback((templateId: string) => {
+    setCollapsedTemplates(prev => {
+      const next = new Set(prev)
+      if (next.has(templateId)) {
+        next.delete(templateId)
+      } else {
+        next.add(templateId)
+      }
+      saveCollapsedTemplates(next)
+      return next
+    })
+  }, [])
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -216,6 +300,8 @@ export function SortableTemplates({
               onTaskUpdate={onTaskUpdate}
               onTasksReorder={onTasksReorder}
               disabled={!canEdit}
+              isCollapsed={collapsedTemplates.has(template.id)}
+              onToggleCollapse={() => toggleCollapse(template.id)}
             />
           ))}
         </div>
