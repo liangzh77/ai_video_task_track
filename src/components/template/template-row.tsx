@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, DragEvent } from 'react'
+import { useState, useEffect, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
 import { Button } from '@/components/ui/button'
 import type { Template, ContentItem } from '@/types/api'
@@ -28,9 +28,25 @@ export function TemplateRow({
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  const items: ContentItem[] = typeof template.items === 'string'
-    ? JSON.parse(template.items) as ContentItem[]
-    : template.items as ContentItem[]
+  // 解析 items，添加错误处理
+  let items: ContentItem[] = []
+  try {
+    items = typeof template.items === 'string'
+      ? JSON.parse(template.items) as ContentItem[]
+      : (template.items as ContentItem[]) || []
+  } catch {
+    console.error('解析 items 失败:', template.items)
+  }
+
+  // 防止 isSaving 状态卡住的安全机制
+  useEffect(() => {
+    if (isSaving) {
+      const timeout = setTimeout(() => {
+        setIsSaving(false)
+      }, 10000) // 10秒后自动重置
+      return () => clearTimeout(timeout)
+    }
+  }, [isSaving])
 
   const handleDelete = async () => {
     if (!onDelete) return
