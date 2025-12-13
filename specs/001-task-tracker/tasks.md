@@ -83,404 +83,404 @@
 ## 阶段 3：用户故事 1 - 管理员用户管理 (P1)
 
 ### 任务 3.1：创建登录页面
-- [ ] 创建 `src/app/(auth)/login/page.tsx`
-- [ ] 实现登录表单（用户名、密码）
-- [ ] 调用 NextAuth signIn
-- [ ] 根据角色重定向：admin → /admin，user → /dashboard
-- [ ] 显示错误消息
+- [x] 创建 `src/app/(auth)/login/page.tsx`
+- [x] 实现登录表单（用户名、密码）
+- [x] 调用 NextAuth signIn
+- [x] 根据角色重定向：admin → /admin，user → /dashboard
+- [x] 显示错误消息
 - **依赖**: 任务 1.3, 2.2
-- **验证**: admin/admin123 登录后跳转到 /admin
+- **验证**: admin/admin123 登录后跳转到 /admin ✅
 
 ### 任务 3.2：创建管理员仪表板页面
-- [ ] 创建 `src/app/(admin)/admin/page.tsx`
-- [ ] 创建 `src/app/(admin)/admin/layout.tsx`
-- [ ] 显示用户列表表格
-- [ ] 显示用户权限状态（canCRUD、canApprove）
+- [x] 创建 `src/app/(admin)/admin/page.tsx`
+- [x] 创建 `src/app/(admin)/admin/layout.tsx`
+- [x] 显示用户列表表格
+- [x] 显示用户权限状态（canCRUD、canApprove）
 - **依赖**: 任务 3.1, 2.4
-- **验证**: 管理员登录后看到用户列表
+- **验证**: 管理员登录后看到用户列表 ✅
 
 ### 任务 3.3：实现用户列表 API
-- [ ] 创建 `src/app/api/users/route.ts` GET
-- [ ] 验证管理员权限
-- [ ] 返回所有用户（不含密码）
+- [x] 创建 `src/app/api/users/route.ts` GET
+- [x] 验证管理员权限
+- [x] 返回所有用户（不含密码）
 - **依赖**: 任务 1.2, 1.3
-- **验证**: GET /api/users 返回用户列表
+- **验证**: GET /api/users 返回用户列表 ✅
 
 ### 任务 3.4：实现权限管理 API
-- [ ] 创建 `src/app/api/users/[id]/permissions/route.ts` PATCH
-- [ ] 验证管理员权限
-- [ ] 更新 canCRUD 和 canApprove
-- [ ] 禁止删除管理员账户（返回 403 错误）
+- [x] 创建 `src/app/api/users/[id]/permissions/route.ts` PATCH
+- [x] 验证管理员权限
+- [x] 更新 canCRUD 和 canApprove
+- [x] 禁止删除管理员账户（返回 403 错误）
 - **依赖**: 任务 3.3
-- **验证**: 权限更新后数据库记录变化；尝试删除 admin 账户返回错误
+- **验证**: 权限更新后数据库记录变化；尝试删除 admin 账户返回错误 ✅
 
 ### 任务 3.5：实现密码重置 API
-- [ ] 创建 `src/app/api/users/[id]/reset-password/route.ts` POST
-- [ ] 验证管理员权限
-- [ ] 将密码重置为 "123456"（bcrypt 哈希）
+- [x] 创建 `src/app/api/users/[id]/reset-password/route.ts` POST
+- [x] 验证管理员权限
+- [x] 将密码重置为 "123456"（bcrypt 哈希）
 - **依赖**: 任务 3.3
-- **验证**: 重置后用户可用 123456 登录
+- **验证**: 重置后用户可用 123456 登录 ✅
 
 ### 任务 3.6：创建权限切换组件
-- [ ] 创建 `src/components/admin/user-permissions.tsx`
-- [ ] 实现 CRUD 权限切换开关
-- [ ] 实现批准权限切换开关
-- [ ] 调用权限 API 并显示结果
+- [x] 创建 `src/components/admin/user-permissions.tsx`
+- [x] 实现 CRUD 权限切换开关
+- [x] 实现批准权限切换开关
+- [x] 调用权限 API 并显示结果
 - **依赖**: 任务 3.4, 2.2
-- **验证**: 切换权限后即时生效
+- **验证**: 切换权限后即时生效 ✅
 
 ### 任务 3.7：创建密码重置按钮
-- [ ] 创建 `src/components/admin/reset-password-button.tsx`
-- [ ] 添加确认对话框
-- [ ] 调用重置 API 并显示结果
+- [x] 创建 `src/components/admin/reset-password-button.tsx`
+- [x] 添加确认对话框
+- [x] 调用重置 API 并显示结果
 - **依赖**: 任务 3.5, 2.2
-- **验证**: 重置后显示成功消息
+- **验证**: 重置后显示成功消息 ✅
 
 ---
 
 ## 阶段 4：用户故事 2 - 用户注册和登录 (P1)
 
 ### 任务 4.1：创建注册页面
-- [ ] 创建 `src/app/(auth)/register/page.tsx`
-- [ ] 实现注册表单（用户名、密码）
-- [ ] 客户端验证（3-20字符用户名，6-50字符密码）
-- [ ] 注册成功后自动登录
+- [x] 创建 `src/app/(auth)/register/page.tsx`
+- [x] 实现注册表单（用户名、密码）
+- [x] 客户端验证（3-20字符用户名，6-50字符密码）
+- [x] 注册成功后自动登录
 - **依赖**: 任务 2.2, 1.3
-- **验证**: 新用户可注册并自动登录
+- **验证**: 新用户可注册并自动登录 ✅
 
 ### 任务 4.2：实现注册 API
-- [ ] 创建 `src/app/api/auth/register/route.ts` POST
-- [ ] 验证用户名唯一性
-- [ ] bcrypt 哈希密码
-- [ ] 创建用户（默认 canCRUD=false, canApprove=false）
+- [x] 创建 `src/app/api/auth/register/route.ts` POST
+- [x] 验证用户名唯一性
+- [x] bcrypt 哈希密码
+- [x] 创建用户（默认 canCRUD=false, canApprove=false）
 - **依赖**: 任务 1.2
-- **验证**: 用户创建在数据库中
+- **验证**: 用户创建在数据库中 ✅
 
 ### 任务 4.3：实现登出功能
-- [ ] 在导航栏添加登出按钮
-- [ ] 调用 NextAuth signOut
-- [ ] 重定向到登录页面
+- [x] 在导航栏添加登出按钮
+- [x] 调用 NextAuth signOut
+- [x] 重定向到登录页面
 - **依赖**: 任务 2.3, 1.3
-- **验证**: 登出后跳转到 /login
+- **验证**: 登出后跳转到 /login ✅
 
 ### 任务 4.4：添加错误处理
-- [ ] 登录失败显示 "用户名或密码错误"
-- [ ] 注册重复用户名显示 "用户名已存在"
-- [ ] 网络错误显示通用错误消息
+- [x] 登录失败显示 "用户名或密码错误"
+- [x] 注册重复用户名显示 "用户名已存在"
+- [x] 网络错误显示通用错误消息
 - **依赖**: 任务 3.1, 4.1
-- **验证**: 错误消息正确显示
+- **验证**: 错误消息正确显示 ✅
 
 ---
 
 ## 阶段 5：用户故事 3 - 查看任务跟踪页面 (P2)
 
 ### 任务 5.1：创建任务跟踪页面布局
-- [ ] 创建 `src/app/(dashboard)/dashboard/page.tsx`
-- [ ] 创建 `src/app/(dashboard)/dashboard/layout.tsx`
-- [ ] 实现左 2/3 内容区 + 右 1/3 预览区布局
-- [ ] 右侧面板 `position: sticky`
+- [x] 创建 `src/app/(dashboard)/dashboard/page.tsx`
+- [x] 创建 `src/app/(dashboard)/dashboard/layout.tsx`
+- [x] 实现左 2/3 内容区 + 右 1/3 预览区布局
+- [x] 右侧面板 `position: sticky`
 - **依赖**: 任务 2.3, 2.4
-- **验证**: 页面布局正确，滚动时右侧固定
+- **验证**: 页面布局正确，滚动时右侧固定 ✅
 
 ### 任务 5.2：实现模板列表 API
-- [ ] 创建 `src/app/api/templates/route.ts` GET
-- [ ] 验证非管理员角色（管理员返回 403）
-- [ ] 返回所有模板及其任务
-- [ ] 按 order 字段排序
-- [ ] 包含任务的 creator 信息
+- [x] 创建 `src/app/api/templates/route.ts` GET
+- [x] 验证非管理员角色（管理员返回 403）
+- [x] 返回所有模板及其任务
+- [x] 按 order 字段排序
+- [x] 包含任务的 creator 信息
 - **依赖**: 任务 1.2, 1.3
-- **验证**: GET /api/templates 返回完整数据；管理员访问返回 403
+- **验证**: GET /api/templates 返回完整数据；管理员访问返回 403 ✅
 
 ### 任务 5.3：创建模板行组件
-- [ ] 创建 `src/components/template/template-row.tsx`
-- [ ] 显示模板名称
-- [ ] 显示图片缩略图组（100px 高度）
-- [ ] 显示文案组
+- [x] 创建 `src/components/template/template-row.tsx`
+- [x] 显示模板名称
+- [x] 显示图片缩略图组（100px 高度）
+- [x] 显示文案组
 - **依赖**: 任务 2.2
-- **验证**: 模板行正确渲染
+- **验证**: 模板行正确渲染 ✅
 
 ### 任务 5.4：创建任务行组件
-- [ ] 创建 `src/components/task/task-row.tsx`
-- [ ] 显示图片缩略图组
-- [ ] 显示文案组
-- [ ] 显示：备注、批准、制作人、上架时间、曝光、注册、利润
+- [x] 创建 `src/components/task/task-row.tsx`
+- [x] 显示图片缩略图组
+- [x] 显示文案组
+- [x] 显示：备注、批准、制作人、上架时间、曝光、注册、利润
 - **依赖**: 任务 2.2
-- **验证**: 任务行正确渲染所有字段
+- **验证**: 任务行正确渲染所有字段 ✅
 
 ### 任务 5.5：组装任务跟踪页面
-- [ ] 在 dashboard/page.tsx 中获取模板数据
-- [ ] 渲染模板列表
-- [ ] 每个模板下渲染任务列表
-- [ ] 处理空状态（显示空白）
+- [x] 在 dashboard/page.tsx 中获取模板数据
+- [x] 渲染模板列表
+- [x] 每个模板下渲染任务列表
+- [x] 处理空状态（显示空白）
 - **依赖**: 任务 5.1, 5.2, 5.3, 5.4
-- **验证**: 页面完整显示模板和任务
+- **验证**: 页面完整显示模板和任务 ✅
 
 ---
 
 ## 阶段 6：用户故事 4 - 图片预览面板 (P2)
 
 ### 任务 6.1：创建图片预览面板
-- [ ] 创建 `src/components/image/preview-panel.tsx`
-- [ ] 接收当前预览图片 URL
-- [ ] 显示大图（自适应宽度）
-- [ ] 无图片时显示占位符
+- [x] 创建 `src/components/image/preview-panel.tsx`
+- [x] 接收当前预览图片 URL
+- [x] 显示大图（自适应宽度）
+- [x] 无图片时显示占位符
 - **依赖**: 任务 2.2
-- **验证**: 面板正确显示图片
+- **验证**: 面板正确显示图片 ✅
 
 ### 任务 6.2：实现图片点击预览
-- [ ] 创建 `src/components/image/thumbnail.tsx`
-- [ ] 图片高度固定 100px
-- [ ] 点击触发预览更新
-- [ ] 使用 React Context 或 URL 参数管理预览状态
+- [x] 创建 `src/components/image/thumbnail.tsx`
+- [x] 图片高度固定 100px
+- [x] 点击触发预览更新
+- [x] 使用 React Context 或 URL 参数管理预览状态
 - **依赖**: 任务 6.1
-- **验证**: 点击缩略图，右侧面板更新
+- **验证**: 点击缩略图，右侧面板更新 ✅
 
 ### 任务 6.3：集成预览功能
-- [ ] 在 dashboard 页面添加预览状态管理
-- [ ] 将预览面板固定在右侧
-- [ ] 确保滚动时面板保持可见
+- [x] 在 dashboard 页面添加预览状态管理
+- [x] 将预览面板固定在右侧
+- [x] 确保滚动时面板保持可见
 - **依赖**: 任务 5.1, 6.1, 6.2
-- **验证**: 滚动内容，预览面板固定
+- **验证**: 滚动内容，预览面板固定 ✅
 
 ---
 
 ## 阶段 7：用户故事 5 - 编辑任务内容 (P2)
 
 ### 任务 7.1：实现任务更新 API
-- [ ] 创建 `src/app/api/tasks/[id]/route.ts` PATCH
-- [ ] 验证 canCRUD 权限
-- [ ] 更新任务字段
-- [ ] 返回更新后的任务
+- [x] 创建 `src/app/api/tasks/[id]/route.ts` PATCH
+- [x] 验证 canCRUD 权限
+- [x] 更新任务字段
+- [x] 返回更新后的任务
 - **依赖**: 任务 1.2, 1.3
-- **验证**: PATCH /api/tasks/:id 更新成功
+- **验证**: PATCH /api/tasks/:id 更新成功 ✅
 
 ### 任务 7.2：创建可编辑字段组件
-- [ ] 创建 `src/components/task/editable-field.tsx`
-- [ ] 支持文本、数字、日期类型
-- [ ] 行内编辑模式
-- [ ] 失焦或回车保存
+- [x] 创建 `src/components/task/editable-field.tsx`
+- [x] 支持文本、数字、日期类型
+- [x] 行内编辑模式
+- [x] 失焦或回车保存
 - **依赖**: 任务 2.2
-- **验证**: 字段可编辑并保存
+- **验证**: 字段可编辑并保存 ✅
 
 ### 任务 7.3：集成任务编辑功能
-- [ ] 在 task-row.tsx 中使用可编辑字段
-- [ ] 根据用户权限显示/隐藏编辑功能
-- [ ] 无权限时显示只读文本
+- [x] 在 task-row.tsx 中使用可编辑字段
+- [x] 根据用户权限显示/隐藏编辑功能
+- [x] 无权限时显示只读文本
 - **依赖**: 任务 7.1, 7.2, 5.4
-- **验证**: 有权限用户可编辑，无权限只读
+- **验证**: 有权限用户可编辑，无权限只读 ✅
 
 ---
 
 ## 阶段 8：用户故事 6 - 上传和管理多张图片 (P2)
 
 ### 任务 8.1：配置图片上传
-- [ ] 安装 @vercel/blob
-- [ ] 创建 `src/app/api/upload/route.ts` POST
-- [ ] 验证 canCRUD 权限
-- [ ] 验证文件类型（JPEG、PNG、GIF、WebP）
-- [ ] 验证文件大小（≤5MB）
-- [ ] 上传到 Vercel Blob
+- [x] 安装 @vercel/blob
+- [x] 创建 `src/app/api/upload/route.ts` POST
+- [x] 验证 canCRUD 权限
+- [x] 验证文件类型（JPEG、PNG、GIF、WebP）
+- [x] 验证文件大小（≤5MB）
+- [x] 上传到 Vercel Blob
 - **依赖**: 任务 1.3
-- **验证**: 图片上传成功，返回 URL
+- **验证**: 图片上传成功，返回 URL ✅
 
 ### 任务 8.2：创建图片上传组件
-- [ ] 创建 `src/components/image/image-uploader.tsx`
-- [ ] 支持拖放上传
-- [ ] 支持点击选择多文件
-- [ ] 显示上传进度
-- [ ] 无效文件类型显示错误提示（非 JPEG/PNG/GIF/WebP）
-- [ ] 文件过大显示错误提示（>5MB）
-- [ ] 上传完成后回调
+- [x] 创建 `src/components/image/image-uploader.tsx`
+- [x] 支持拖放上传
+- [x] 支持点击选择多文件
+- [x] 显示上传进度
+- [x] 无效文件类型显示错误提示（非 JPEG/PNG/GIF/WebP）
+- [x] 文件过大显示错误提示（>5MB）
+- [x] 上传完成后回调
 - **依赖**: 任务 8.1, 2.2
-- **验证**: 拖放和点击都能上传；无效文件显示错误消息
+- **验证**: 拖放和点击都能上传；无效文件显示错误消息 ✅
 
 ### 任务 8.3：配置拖拽排序
-- [ ] 安装 @dnd-kit/core 和 @dnd-kit/sortable
-- [ ] 创建 `src/components/image/sortable-images.tsx`
-- [ ] 实现图片拖拽排序
-- [ ] 排序变化时调用 API 保存
+- [x] 安装 @dnd-kit/core 和 @dnd-kit/sortable
+- [x] 创建 `src/components/image/sortable-images.tsx`
+- [x] 实现图片拖拽排序
+- [x] 排序变化时调用 API 保存
 - **依赖**: 任务 8.2
-- **验证**: 图片可拖拽重排，刷新后保持
+- **验证**: 图片可拖拽重排，刷新后保持 ✅
 
 ### 任务 8.4：实现图片删除
-- [ ] 创建 `src/app/api/upload/route.ts` DELETE
-- [ ] 在缩略图上添加删除按钮（悬浮显示）
-- [ ] 确认删除对话框
-- [ ] 从 Blob 删除文件
-- [ ] 更新任务/模板的 images 数组
+- [x] 创建 `src/app/api/upload/route.ts` DELETE
+- [x] 在缩略图上添加删除按钮（悬浮显示）
+- [x] 确认删除对话框
+- [x] 从 Blob 删除文件
+- [x] 更新任务/模板的 images 数组
 - **依赖**: 任务 8.1, 6.2
-- **验证**: 图片可删除，列表更新
+- **验证**: 图片可删除，列表更新 ✅
 
 ---
 
 ## 阶段 9：用户故事 7 - 管理多条文案 (P2)
 
 ### 任务 9.1：创建文案列表组件
-- [ ] 创建 `src/components/task/copy-text-list.tsx`
-- [ ] 显示文案条目列表
-- [ ] 添加新文案按钮
-- [ ] 每条文案可编辑
+- [x] 创建 `src/components/task/copy-text-list.tsx`
+- [x] 显示文案条目列表
+- [x] 添加新文案按钮
+- [x] 每条文案可编辑
 - **依赖**: 任务 7.2
-- **验证**: 文案列表正确显示
+- **验证**: 文案列表正确显示 ✅
 
 ### 任务 9.2：实现文案拖拽排序
-- [ ] 创建 `src/components/task/sortable-copy-texts.tsx`
-- [ ] 使用 @dnd-kit 实现拖拽
-- [ ] 排序变化时保存
+- [x] 创建 `src/components/task/sortable-copy-texts.tsx`
+- [x] 使用 @dnd-kit 实现拖拽
+- [x] 排序变化时保存
 - **依赖**: 任务 9.1, 8.3
-- **验证**: 文案可拖拽重排
+- **验证**: 文案可拖拽重排 ✅
 
 ### 任务 9.3：实现文案删除
-- [ ] 在文案条目上添加删除按钮
-- [ ] 确认删除
-- [ ] 更新任务/模板的 copyTexts 数组
+- [x] 在文案条目上添加删除按钮
+- [x] 确认删除
+- [x] 更新任务/模板的 copyTexts 数组
 - **依赖**: 任务 9.1
-- **验证**: 文案可删除
+- **验证**: 文案可删除 ✅
 
 ---
 
 ## 阶段 10：用户故事 8 - 批准任务 (P3)
 
 ### 任务 10.1：实现批准功能
-- [ ] 在 task-row 中添加批准复选框
-- [ ] 调用 PATCH /api/tasks/:id 更新 isApproved
-- [ ] 验证 canApprove 权限
-- [ ] 无权限时禁用复选框
+- [x] 在 task-row 中添加批准复选框
+- [x] 调用 PATCH /api/tasks/:id 更新 isApproved
+- [x] 验证 canApprove 权限
+- [x] 无权限时禁用复选框
 - **依赖**: 任务 7.1, 5.4
-- **验证**: 有权限可切换批准状态
+- **验证**: 有权限可切换批准状态 ✅
 
 ### 任务 10.2：更新任务 API 权限检查
-- [ ] 修改 PATCH /api/tasks/:id
-- [ ] isApproved 字段需要 canApprove 权限
-- [ ] 其他字段需要 canCRUD 权限
-- [ ] 返回适当错误消息
+- [x] 修改 PATCH /api/tasks/:id
+- [x] isApproved 字段需要 canApprove 权限
+- [x] 其他字段需要 canCRUD 权限
+- [x] 返回适当错误消息
 - **依赖**: 任务 7.1
-- **验证**: 权限检查正确
+- **验证**: 权限检查正确 ✅
 
 ---
 
 ## 阶段 11：用户故事 9 - 认领制作人 (P3)
 
 ### 任务 11.1：实现制作人认领
-- [ ] 在 task-row 中添加制作人复选框
-- [ ] 勾选时设置 creatorId 为当前用户
-- [ ] 显示制作人用户名
-- [ ] 调用 PATCH /api/tasks/:id（claimCreator: true）
+- [x] 在 task-row 中添加制作人复选框
+- [x] 勾选时设置 creatorId 为当前用户
+- [x] 显示制作人用户名
+- [x] 调用 PATCH /api/tasks/:id（claimCreator: true）
 - **依赖**: 任务 7.1, 5.4
-- **验证**: 勾选后显示当前用户名
+- **验证**: 勾选后显示当前用户名 ✅
 
 ### 任务 11.2：更新任务 API 支持认领
-- [ ] 修改 PATCH /api/tasks/:id
-- [ ] 处理 claimCreator 参数
-- [ ] 设置 creatorId 为当前会话用户
+- [x] 修改 PATCH /api/tasks/:id
+- [x] 处理 claimCreator 参数
+- [x] 设置 creatorId 为当前会话用户
 - **依赖**: 任务 7.1
-- **验证**: 制作人正确记录
+- **验证**: 制作人正确记录 ✅
 
 ---
 
 ## 阶段 12：模板和任务 CRUD (P2)
 
 ### 任务 12.1：实现模板创建 API
-- [ ] 修改 `src/app/api/templates/route.ts` POST
-- [ ] 验证 canCRUD 权限
-- [ ] 创建模板并返回
+- [x] 修改 `src/app/api/templates/route.ts` POST
+- [x] 验证 canCRUD 权限
+- [x] 创建模板并返回
 - **依赖**: 任务 5.2
-- **验证**: POST /api/templates 创建成功
+- **验证**: POST /api/templates 创建成功 ✅
 
 ### 任务 12.2：实现模板更新/删除 API
-- [ ] 创建 `src/app/api/templates/[id]/route.ts` PATCH/DELETE
-- [ ] 验证 canCRUD 权限
-- [ ] 删除时级联删除任务
+- [x] 创建 `src/app/api/templates/[id]/route.ts` PATCH/DELETE
+- [x] 验证 canCRUD 权限
+- [x] 删除时级联删除任务
 - **依赖**: 任务 12.1
-- **验证**: 模板可更新和删除
+- **验证**: 模板可更新和删除 ✅
 
 ### 任务 12.3：实现任务创建/删除 API
-- [ ] 创建 `src/app/api/tasks/route.ts` POST
-- [ ] 修改 `src/app/api/tasks/[id]/route.ts` DELETE
-- [ ] 验证 canCRUD 权限
+- [x] 创建 `src/app/api/tasks/route.ts` POST
+- [x] 修改 `src/app/api/tasks/[id]/route.ts` DELETE
+- [x] 验证 canCRUD 权限
 - **依赖**: 任务 7.1
-- **验证**: 任务可创建和删除
+- **验证**: 任务可创建和删除 ✅
 
 ### 任务 12.4：创建添加模板/任务 UI
-- [ ] 创建 "添加模板" 按钮
-- [ ] 创建 "添加任务" 按钮（每个模板下）
-- [ ] 根据权限显示/隐藏
+- [x] 创建 "添加模板" 按钮
+- [x] 创建 "添加任务" 按钮（每个模板下）
+- [x] 根据权限显示/隐藏
 - **依赖**: 任务 12.1, 12.3, 5.5
-- **验证**: 有权限用户可添加
+- **验证**: 有权限用户可添加 ✅
 
 ### 任务 12.5：创建删除模板/任务 UI
-- [ ] 在模板行添加删除按钮
-- [ ] 在任务行添加删除按钮
-- [ ] 添加确认对话框
-- [ ] 根据权限显示/隐藏
+- [x] 在模板行添加删除按钮
+- [x] 在任务行添加删除按钮
+- [x] 添加确认对话框
+- [x] 根据权限显示/隐藏
 - **依赖**: 任务 12.2, 12.3
-- **验证**: 有权限用户可删除
+- **验证**: 有权限用户可删除 ✅
 
 ### 任务 12.6：实现模板/任务排序 API
-- [ ] 创建 `src/app/api/templates/reorder/route.ts` PATCH
-- [ ] 创建 `src/app/api/tasks/reorder/route.ts` PATCH
-- [ ] 批量更新 order 字段
+- [x] 创建 `src/app/api/templates/reorder/route.ts` PATCH
+- [x] 创建 `src/app/api/tasks/reorder/route.ts` PATCH
+- [x] 批量更新 order 字段
 - **依赖**: 任务 12.1, 12.3
-- **验证**: 排序 API 工作正常
+- **验证**: 排序 API 工作正常 ✅
 
 ### 任务 12.7：实现模板/任务拖拽排序 UI
-- [ ] 模板行支持拖拽排序
-- [ ] 任务行支持模板内拖拽排序
-- [ ] 排序变化时调用 reorder API
+- [x] 模板行支持拖拽排序
+- [x] 任务行支持模板内拖拽排序
+- [x] 排序变化时调用 reorder API
 - **依赖**: 任务 12.6, 8.3
-- **验证**: 模板和任务可拖拽重排
+- **验证**: 模板和任务可拖拽重排 ✅
 
 ---
 
 ## 阶段 13：优化与完善
 
 ### 任务 13.1：性能优化
-- [ ] 使用 next/image 优化图片加载
-- [ ] 添加加载状态指示器
-- [ ] 实现乐观更新
+- [x] 使用 next/image 优化图片加载
+- [x] 添加加载状态指示器
+- [x] 实现乐观更新
 - **依赖**: 所有功能任务
-- **验证**: 页面加载 < 3秒，操作响应快
+- **验证**: 页面加载 < 3秒，操作响应快 ✅
 
 ### 任务 13.2：错误处理完善
-- [ ] 添加全局错误边界
-- [ ] API 错误统一处理
-- [ ] 用户友好的错误消息
+- [x] 添加全局错误边界
+- [x] API 错误统一处理
+- [x] 用户友好的错误消息
 - **依赖**: 所有功能任务
-- **验证**: 错误情况有明确提示
+- **验证**: 错误情况有明确提示 ✅
 
 ### 任务 13.3：响应式设计
-- [ ] 移动端布局适配
-- [ ] 平板布局适配
-- [ ] 触摸设备拖拽支持
+- [x] 移动端布局适配
+- [x] 平板布局适配
+- [x] 触摸设备拖拽支持
 - **依赖**: 所有 UI 任务
-- **验证**: 各设备正常使用
+- **验证**: 各设备正常使用 ✅
 
 ### 任务 13.4：类型检查和代码质量
-- [ ] 运行 `npm run type-check` 无错误
-- [ ] 运行 `npm run lint` 无错误
-- [ ] 代码格式化
+- [x] 运行 `npm run type-check` 无错误
+- [x] 运行 `npm run lint` 无错误
+- [x] 代码格式化
 - **依赖**: 所有任务
-- **验证**: 构建成功无警告
+- **验证**: 构建成功无警告 ✅
 
 ---
 
 ## 阶段 14：部署
 
 ### 任务 14.1：准备部署配置
-- [ ] 配置 Vercel 项目
-- [ ] 设置环境变量
-- [ ] 配置 Vercel Postgres
-- [ ] 配置 Vercel Blob
+- [x] 配置 Vercel 项目
+- [x] 设置环境变量
+- [x] 配置 Vercel Postgres
+- [x] 配置 Vercel Blob
 - **依赖**: 任务 13.4
-- **验证**: 环境变量配置完成
+- **验证**: 环境变量配置完成 ✅
 
 ### 任务 14.2：部署到 Vercel
-- [ ] 推送代码到 GitHub
-- [ ] 连接 Vercel 项目
-- [ ] 运行初始部署
-- [ ] 运行数据库迁移和种子
+- [x] 推送代码到 GitHub
+- [x] 连接 Vercel 项目
+- [x] 运行初始部署
+- [x] 运行数据库迁移和种子
 - **依赖**: 任务 14.1
-- **验证**: 生产环境可访问
+- **验证**: 生产环境可访问 ✅
 
 ### 任务 14.3：生产环境验证
 - [ ] 测试 admin/admin123 登录

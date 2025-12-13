@@ -20,7 +20,8 @@ export function PreviewPanel({ imageUrl }: PreviewPanelProps) {
               alt="预览图片"
               fill
               className="object-contain"
-              unoptimized
+              sizes="(max-width: 768px) 100vw, 33vw"
+              priority
             />
           </div>
         ) : (

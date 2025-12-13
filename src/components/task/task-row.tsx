@@ -102,11 +102,11 @@ export function TaskRow({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-4 ml-6 hover:shadow-sm transition-shadow group">
-      <div className="flex flex-wrap items-start gap-4">
+    <div className="bg-white border rounded-lg p-3 sm:p-4 ml-2 sm:ml-6 hover:shadow-sm transition-shadow group">
+      <div className="flex flex-col sm:flex-row flex-wrap items-start gap-3 sm:gap-4">
         {/* Images */}
         {images.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap w-full sm:w-auto">
             {images.map((url, index) => (
               <Thumbnail
                 key={`${task.id}-img-${index}`}
@@ -121,11 +121,11 @@ export function TaskRow({
 
         {/* Copy Texts */}
         {copyTexts.length > 0 && (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 w-full sm:w-auto">
             {copyTexts.map((text, index) => (
               <span
                 key={`${task.id}-text-${index}`}
-                className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded"
+                className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded break-all"
               >
                 {text}
               </span>
@@ -134,7 +134,7 @@ export function TaskRow({
         )}
 
         {/* Task Info */}
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+        <div className="w-full sm:flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-sm">
           <div>
             <span className="text-gray-500">备注：</span>
             <EditableField
