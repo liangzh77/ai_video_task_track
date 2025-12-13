@@ -83,8 +83,10 @@ function SortableItem({
   }
 
   const handleSaveText = () => {
-    if (editValue.trim() && onEdit) {
-      onEdit(editValue.trim())
+    const trimmedValue = editValue.trim()
+    // 只有当文案有变化时才更新到后端
+    if (trimmedValue && trimmedValue !== item.content && onEdit) {
+      onEdit(trimmedValue)
     }
     setIsEditing(false)
   }
