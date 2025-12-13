@@ -58,7 +58,7 @@ export async function POST(request: Request) {
           registrations,
           profit,
           order: (maxOrder._max.order ?? -1) + 1,
-          creatorId: session.user.id,
+          // creatorId 留空，用户可以通过"制作"按钮认领
         },
         include: {
           creator: {
