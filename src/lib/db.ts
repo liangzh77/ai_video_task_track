@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { neon } from '@neondatabase/serverless'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -15,13 +15,9 @@ function createPrismaClient() {
     throw new Error('DATABASE_URL is not set')
   }
 
-  console.log('Creating Prisma client with pg adapter, connection string length:', connectionString.length)
-
-  const pool = new Pool({
-    connectionString,
-    ssl: { rejectUnauthorized: false }
-  })
-  const adapter = new PrismaPg(pool)
+  // Use Neon serverless driver for faster cold starts
+  const sql = neon(connectionString)
+  const adapter = new PrismaNeon(sql)
 
   return new PrismaClient({
     adapter,
