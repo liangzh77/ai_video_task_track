@@ -86,7 +86,29 @@ export function TaskRow({
     }
   }
 
+  const handleRemoveCreator = async () => {
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ removeCreator: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error('移除制作人失败')
+      }
+
+      const updatedTask = await response.json()
+      if (onTaskUpdate) {
+        onTaskUpdate(task.id, updatedTask)
+      }
+    } catch (error) {
+      console.error('移除制作人失败:', error)
+    }
+  }
+
   const isCreator = task.creator?.id === currentUserId
+  const canRemoveCreator = isCreator || canApprove
 
   // 更新 items 列表
   const updateItems = async (newItems: ContentItem[]) => {
@@ -264,20 +286,32 @@ export function TaskRow({
           <div className="flex items-center gap-1">
             <span className="text-gray-500">制作人：</span>
             {task.creator ? (
-              <span className="text-gray-900">{task.creator.username}</span>
+              <>
+                <span className="text-gray-900">{task.creator.username}</span>
+                {isCreator && (
+                  <span className="text-xs text-blue-600">(我)</span>
+                )}
+                {canRemoveCreator && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveCreator}
+                    className="w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 ml-1"
+                    title="移除制作人"
+                  >
+                    ×
+                  </button>
+                )}
+              </>
             ) : canEdit && currentUserId ? (
               <button
                 type="button"
                 onClick={handleClaimCreator}
                 className="text-blue-600 hover:text-blue-700 hover:underline"
               >
-                认领
+                制作
               </button>
             ) : (
               <span className="text-gray-400">-</span>
-            )}
-            {isCreator && (
-              <span className="text-xs text-blue-600">(我)</span>
             )}
           </div>
 

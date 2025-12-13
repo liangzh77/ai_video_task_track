@@ -63,6 +63,7 @@ export async function PATCH(
       notes,
       isApproved,
       claimCreator,
+      removeCreator,
       publishDate,
       exposure,
       registrations,
@@ -84,6 +85,14 @@ export async function PATCH(
       return NextResponse.json({ error: '无审批权限' }, { status: 403 })
     }
 
+    // Only creator or users with canApprove can remove creator
+    if (removeCreator === true) {
+      const isCreator = existingTask.creatorId === session.user.id
+      if (!isCreator && !session.user.canApprove && session.user.role !== 'ADMIN') {
+        return NextResponse.json({ error: '无权移除制作人' }, { status: 403 })
+      }
+    }
+
     const updateData: Record<string, unknown> = {}
 
     if (items !== undefined) {
@@ -97,6 +106,9 @@ export async function PATCH(
     }
     if (claimCreator === true) {
       updateData.creatorId = session.user.id
+    }
+    if (removeCreator === true) {
+      updateData.creatorId = null
     }
     if (publishDate !== undefined) {
       updateData.publishDate = publishDate ? new Date(publishDate) : null
