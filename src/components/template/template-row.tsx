@@ -26,6 +26,7 @@ export function TemplateRow({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const items: ContentItem[] = typeof template.items === 'string'
     ? JSON.parse(template.items) as ContentItem[]
@@ -45,6 +46,7 @@ export function TemplateRow({
   }
 
   const updateItems = async (newItems: ContentItem[]) => {
+    setIsSaving(true)
     try {
       const response = await fetch(`/api/templates/${template.id}`, {
         method: 'PATCH',
@@ -66,6 +68,8 @@ export function TemplateRow({
       }
     } catch (error) {
       console.error('更新模板失败:', error)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -211,6 +215,7 @@ export function TemplateRow({
           selectedImageUrl={selectedImageUrl}
           disabled={!canEdit}
           draggableImages={canEdit}
+          isSaving={isSaving}
         />
       </div>
     </div>

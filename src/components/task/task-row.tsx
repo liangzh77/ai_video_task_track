@@ -33,6 +33,7 @@ export function TaskRow({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const items: ContentItem[] = typeof task.items === 'string'
     ? JSON.parse(task.items) as ContentItem[]
@@ -89,6 +90,7 @@ export function TaskRow({
 
   // 更新 items 列表
   const updateItems = async (newItems: ContentItem[]) => {
+    setIsSaving(true)
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
@@ -106,6 +108,8 @@ export function TaskRow({
       }
     } catch (error) {
       console.error('更新失败:', error)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -221,6 +225,7 @@ export function TaskRow({
           onImageClick={onImageClick}
           selectedImageUrl={selectedImageUrl}
           disabled={!canEdit}
+          isSaving={isSaving}
         />
 
         {/* Task Info */}

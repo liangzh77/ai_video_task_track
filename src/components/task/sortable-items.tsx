@@ -32,6 +32,7 @@ interface SortableItemProps {
   isSelected?: boolean
   disabled?: boolean
   draggable?: boolean
+  isSaving?: boolean
 }
 
 function SortableItem({
@@ -43,6 +44,7 @@ function SortableItem({
   isSelected,
   disabled,
   draggable = false,
+  isSaving = false,
 }: SortableItemProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -112,6 +114,7 @@ function SortableItem({
           relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden
           ${isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'}
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
+          ${isSaving ? 'pointer-events-none' : ''}
         `}
         {...attributes}
         {...listeners}
@@ -142,7 +145,15 @@ function SortableItem({
           />
         </button>
 
-        {!disabled && (
+        {/* Saving overlay with scanning effect */}
+        {isSaving && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 bg-blue-500/10" />
+            <div className="absolute inset-0 animate-scan bg-gradient-to-b from-transparent via-blue-400/30 to-transparent" style={{ backgroundSize: '100% 50%' }} />
+          </div>
+        )}
+
+        {!disabled && !isSaving && (
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
         )}
 
@@ -187,6 +198,7 @@ function SortableItem({
       className={`
         relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
         ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
+        ${isSaving ? 'pointer-events-none' : ''}
       `}
       {...attributes}
       {...listeners}
@@ -218,7 +230,15 @@ function SortableItem({
             </span>
           </div>
 
-          {!disabled && (
+          {/* Saving overlay with scanning effect */}
+          {isSaving && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-blue-500/10" />
+              <div className="absolute inset-0 animate-scan bg-gradient-to-b from-transparent via-blue-400/30 to-transparent" style={{ backgroundSize: '100% 50%' }} />
+            </div>
+          )}
+
+          {!disabled && !isSaving && (
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
           )}
 
@@ -264,6 +284,7 @@ interface SortableItemsProps {
   selectedImageUrl?: string | null
   disabled?: boolean
   draggableImages?: boolean
+  isSaving?: boolean
 }
 
 export function SortableItems({
@@ -273,6 +294,7 @@ export function SortableItems({
   selectedImageUrl,
   disabled = false,
   draggableImages = false,
+  isSaving = false,
 }: SortableItemsProps) {
   const [newText, setNewText] = useState('')
 
@@ -343,6 +365,7 @@ export function SortableItems({
                 isSelected={item.type === 'image' && selectedImageUrl === item.content}
                 disabled={disabled}
                 draggable={draggableImages && item.type === 'image'}
+                isSaving={isSaving}
               />
             ))}
             {items.length === 0 && !disabled && (
