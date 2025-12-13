@@ -18,8 +18,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const {
       templateId,
-      images = [],
-      copyTexts = [],
+      items = [],
       notes = '',
       publishDate,
       exposure = 0,
@@ -52,8 +51,7 @@ export async function POST(request: Request) {
       return tx.task.create({
         data: {
           templateId,
-          images: JSON.stringify(images),
-          copyTexts: JSON.stringify(copyTexts),
+          items: JSON.stringify(items),
           notes,
           publishDate: publishDate ? new Date(publishDate) : null,
           exposure,

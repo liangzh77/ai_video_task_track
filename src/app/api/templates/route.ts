@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { name, images = [], copyTexts = [] } = body
+    const { name, items = [] } = body
 
     if (!name || name.trim() === '') {
       return NextResponse.json({ error: '模板名称不能为空' }, { status: 400 })
@@ -68,8 +68,7 @@ export async function POST(request: Request) {
       return tx.template.create({
         data: {
           name: name.trim(),
-          images: JSON.stringify(images),
-          copyTexts: JSON.stringify(copyTexts),
+          items: JSON.stringify(items),
           order: (maxOrder._max.order ?? -1) + 1,
         },
       })

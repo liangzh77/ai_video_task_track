@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, DragEvent } from 'react'
-import { SortableImages } from '@/components/image/sortable-images'
-import { SortableCopyTexts } from '@/components/task/sortable-copy-texts'
+import { SortableItems } from '@/components/task/sortable-items'
 import { EditableField } from '@/components/task/editable-field'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import type { Task } from '@/types/api'
+import type { Task, ContentItem } from '@/types/api'
 
 interface TaskRowProps {
   task: Task
@@ -34,13 +33,10 @@ export function TaskRow({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const images = typeof task.images === 'string'
-    ? JSON.parse(task.images) as string[]
-    : task.images as string[]
 
-  const copyTexts = typeof task.copyTexts === 'string'
-    ? JSON.parse(task.copyTexts) as string[]
-    : task.copyTexts as string[]
+  const items: ContentItem[] = typeof task.items === 'string'
+    ? JSON.parse(task.items) as ContentItem[]
+    : task.items as ContentItem[]
 
   const handleFieldSave = async (field: string, value: string | number | boolean) => {
     try {
@@ -91,17 +87,17 @@ export function TaskRow({
 
   const isCreator = task.creator?.id === currentUserId
 
-  // 更新图片列表
-  const updateImages = async (newImages: string[]) => {
+  // 更新 items 列表
+  const updateItems = async (newItems: ContentItem[]) => {
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: newImages }),
+        body: JSON.stringify({ items: newItems }),
       })
 
       if (!response.ok) {
-        throw new Error('更新图片失败')
+        throw new Error('更新失败')
       }
 
       const updatedTask = await response.json()
@@ -109,42 +105,15 @@ export function TaskRow({
         onTaskUpdate(task.id, updatedTask)
       }
     } catch (error) {
-      console.error('更新图片失败:', error)
+      console.error('更新失败:', error)
     }
   }
 
   // 添加图片到任务
   const addImageToTask = async (imageUrl: string) => {
-    if (images.includes(imageUrl)) return // 避免重复
-    await updateImages([...images, imageUrl])
-  }
-
-  // 删除图片
-  const handleDeleteImage = async (url: string) => {
-    const newImages = images.filter(img => img !== url)
-    await updateImages(newImages)
-  }
-
-  // 更新文案列表
-  const updateCopyTexts = async (newTexts: string[]) => {
-    try {
-      const response = await fetch(`/api/tasks/${task.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ copyTexts: newTexts }),
-      })
-
-      if (!response.ok) {
-        throw new Error('更新文案失败')
-      }
-
-      const updatedTask = await response.json()
-      if (onTaskUpdate) {
-        onTaskUpdate(task.id, updatedTask)
-      }
-    } catch (error) {
-      console.error('更新文案失败:', error)
-    }
+    // 检查是否已存在相同图片
+    if (items.some(item => item.type === 'image' && item.content === imageUrl)) return
+    await updateItems([...items, { type: 'image', content: imageUrl }])
   }
 
   // 上传文件并添加到任务
@@ -244,38 +213,18 @@ export function TaskRow({
           <span className="text-sm text-blue-600">上传中...</span>
         </div>
       )}
-      <div className="flex flex-col sm:flex-row flex-wrap items-start gap-3 sm:gap-4">
-        {/* Images */}
-        <div className="flex gap-2 flex-wrap w-full sm:w-auto min-h-[100px]">
-          {images.length > 0 ? (
-            <SortableImages
-              images={images}
-              onReorder={updateImages}
-              onDelete={handleDeleteImage}
-              onImageClick={onImageClick}
-              selectedImageUrl={selectedImageUrl}
-              disabled={!canEdit}
-            />
-          ) : canEdit ? (
-            <div className={`flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed rounded text-gray-400 text-xs text-center ${
-              isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-            }`}>
-              拖拽图片到此处
-            </div>
-          ) : null}
-        </div>
-
-        {/* Copy Texts */}
-        <div className="w-full sm:w-auto sm:min-w-[200px]">
-          <SortableCopyTexts
-            texts={copyTexts}
-            onUpdate={updateCopyTexts}
-            disabled={!canEdit}
-          />
-        </div>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Items (Images + Texts) */}
+        <SortableItems
+          items={items}
+          onUpdate={updateItems}
+          onImageClick={onImageClick}
+          selectedImageUrl={selectedImageUrl}
+          disabled={!canEdit}
+        />
 
         {/* Task Info */}
-        <div className="w-full sm:flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-sm">
+        <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-sm">
           <div>
             <span className="text-gray-500">备注：</span>
             <EditableField

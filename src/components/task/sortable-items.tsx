@@ -1,0 +1,369 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import Image from 'next/image'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import type { ContentItem } from '@/types/api'
+
+interface SortableItemProps {
+  id: string
+  item: ContentItem
+  onDelete: () => void
+  onEdit?: (newContent: string) => void
+  onImageClick?: (url: string) => void
+  isSelected?: boolean
+  disabled?: boolean
+  draggable?: boolean
+}
+
+function SortableItem({
+  id,
+  item,
+  onDelete,
+  onEdit,
+  onImageClick,
+  isSelected,
+  disabled,
+  draggable = false,
+}: SortableItemProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(item.content)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowDeleteConfirm(true)
+  }
+
+  const handleConfirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDelete()
+    setShowDeleteConfirm(false)
+  }
+
+  const handleCancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setShowDeleteConfirm(false)
+  }
+
+  const handleSaveText = () => {
+    if (editValue.trim() && onEdit) {
+      onEdit(editValue.trim())
+    }
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveText()
+    } else if (e.key === 'Escape') {
+      setEditValue(item.content)
+      setIsEditing(false)
+    }
+  }
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!draggable || item.type !== 'image') return
+    e.dataTransfer.setData('text/plain', item.content)
+    e.dataTransfer.setData('application/x-image-url', item.content)
+    e.dataTransfer.effectAllowed = 'copy'
+  }
+
+  if (item.type === 'image') {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`
+          relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden
+          ${isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'}
+          ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
+        `}
+        {...attributes}
+        {...listeners}
+        draggable={draggable}
+        onDragStart={handleDragStart}
+      >
+        <button
+          type="button"
+          onClick={() => onImageClick?.(item.content)}
+          className="h-full relative"
+        >
+          {isLoading && (
+            <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
+              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
+          <Image
+            src={item.content}
+            alt="图片"
+            width={100}
+            height={100}
+            className={`h-full w-auto object-contain transition-opacity ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setIsLoading(false)}
+            sizes="100px"
+            draggable={false}
+          />
+        </button>
+
+        {!disabled && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
+        )}
+
+        {!disabled && !showDeleteConfirm && (
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+          >
+            ×
+          </button>
+        )}
+
+        {showDeleteConfirm && (
+          <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-1">
+            <span className="text-white text-xs">确认删除？</span>
+            <div className="flex gap-1">
+              <button
+                onClick={handleConfirmDelete}
+                className="px-2 py-0.5 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+              >
+                是
+              </button>
+              <button
+                onClick={handleCancelDelete}
+                className="px-2 py-0.5 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+              >
+                否
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Text item
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`
+        flex items-center gap-1 group h-[100px]
+        ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
+      `}
+      {...attributes}
+      {...listeners}
+    >
+      {isEditing ? (
+        <div className="flex items-center gap-1">
+          <Input
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleSaveText}
+            onKeyDown={handleKeyDown}
+            autoFocus
+            className="h-8 text-sm w-32"
+          />
+        </div>
+      ) : (
+        <div className="relative">
+          <span
+            className={`text-sm px-2 py-1 bg-gray-100 rounded break-all ${
+              disabled ? '' : 'cursor-pointer hover:bg-gray-200'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (!disabled) setIsEditing(true)
+            }}
+          >
+            {item.content}
+          </span>
+          {!disabled && (
+            <button
+              onClick={handleDeleteClick}
+              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-600"
+            >
+              ×
+            </button>
+          )}
+          {showDeleteConfirm && (
+            <div className="absolute inset-0 bg-black/70 rounded flex flex-col items-center justify-center gap-1 min-w-[80px]">
+              <span className="text-white text-xs">删除？</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-2 py-0.5 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                >
+                  是
+                </button>
+                <button
+                  onClick={handleCancelDelete}
+                  className="px-2 py-0.5 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                >
+                  否
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface SortableItemsProps {
+  items: ContentItem[]
+  onUpdate: (items: ContentItem[]) => void
+  onImageClick?: (url: string) => void
+  selectedImageUrl?: string | null
+  disabled?: boolean
+  draggableImages?: boolean
+}
+
+export function SortableItems({
+  items,
+  onUpdate,
+  onImageClick,
+  selectedImageUrl,
+  disabled = false,
+  draggableImages = false,
+}: SortableItemsProps) {
+  const [newText, setNewText] = useState('')
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((_, i) => `item-${i}` === active.id)
+      const newIndex = items.findIndex((_, i) => `item-${i}` === over.id)
+      const newItems = arrayMove(items, oldIndex, newIndex)
+      onUpdate(newItems)
+    }
+  }
+
+  const handleDelete = (index: number) => {
+    const newItems = items.filter((_, i) => i !== index)
+    onUpdate(newItems)
+  }
+
+  const handleEdit = (index: number, newContent: string) => {
+    const newItems = [...items]
+    newItems[index] = { ...newItems[index], content: newContent }
+    onUpdate(newItems)
+  }
+
+  const handleAddText = () => {
+    if (!newText.trim()) return
+    onUpdate([...items, { type: 'text', content: newText.trim() }])
+    setNewText('')
+  }
+
+  const handleAddKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddText()
+    }
+  }
+
+  const itemIds = items.map((_, i) => `item-${i}`)
+
+  return (
+    <div className="space-y-2">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
+          <div className="flex gap-2 flex-wrap items-center min-h-[100px]">
+            {items.map((item, index) => (
+              <SortableItem
+                key={`item-${index}`}
+                id={`item-${index}`}
+                item={item}
+                onDelete={() => handleDelete(index)}
+                onEdit={item.type === 'text' ? (newContent) => handleEdit(index, newContent) : undefined}
+                onImageClick={onImageClick}
+                isSelected={item.type === 'image' && selectedImageUrl === item.content}
+                disabled={disabled}
+                draggable={draggableImages && item.type === 'image'}
+              />
+            ))}
+            {items.length === 0 && !disabled && (
+              <div className="flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
+                拖拽内容到此处
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
+
+      {!disabled && (
+        <div className="flex items-center gap-2">
+          <Input
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            onKeyDown={handleAddKeyDown}
+            placeholder="添加新文案..."
+            className="flex-1 h-8 text-sm max-w-[200px]"
+          />
+          <Button
+            size="sm"
+            onClick={handleAddText}
+            disabled={!newText.trim()}
+            className="h-8"
+          >
+            添加
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}

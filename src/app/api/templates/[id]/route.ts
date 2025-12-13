@@ -61,7 +61,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { name, images, copyTexts, order } = body
+    const { name, items, order } = body
 
     // Check if template exists
     const existingTemplate = await prisma.template.findUnique({
@@ -80,11 +80,8 @@ export async function PATCH(
       }
       updateData.name = name.trim()
     }
-    if (images !== undefined) {
-      updateData.images = JSON.stringify(images)
-    }
-    if (copyTexts !== undefined) {
-      updateData.copyTexts = JSON.stringify(copyTexts)
+    if (items !== undefined) {
+      updateData.items = JSON.stringify(items)
     }
     if (typeof order === 'number') {
       updateData.order = order

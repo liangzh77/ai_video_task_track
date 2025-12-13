@@ -31,6 +31,7 @@ interface SortableTemplateItemProps {
   currentUserId?: string
   currentUsername?: string
   onDeleteTemplate: (templateId: string) => Promise<void>
+  onTemplateUpdate: (templateId: string, updates: Partial<Template>) => void
   onAddTask: (templateId: string) => Promise<void>
   onDeleteTask: (taskId: string) => Promise<void>
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
@@ -47,6 +48,7 @@ function SortableTemplateItem({
   currentUserId,
   currentUsername,
   onDeleteTemplate,
+  onTemplateUpdate,
   onAddTask,
   onDeleteTask,
   onTaskUpdate,
@@ -101,6 +103,7 @@ function SortableTemplateItem({
             selectedImageUrl={selectedImageUrl}
             canEdit={canEdit}
             onDelete={onDeleteTemplate}
+            onTemplateUpdate={onTemplateUpdate}
           />
         </div>
       </div>
@@ -141,6 +144,7 @@ interface SortableTemplatesProps {
   currentUsername?: string
   onReorder: (templateIds: string[]) => Promise<void>
   onDeleteTemplate: (templateId: string) => Promise<void>
+  onTemplateUpdate: (templateId: string, updates: Partial<Template>) => void
   onAddTask: (templateId: string) => Promise<void>
   onDeleteTask: (taskId: string) => Promise<void>
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
@@ -157,6 +161,7 @@ export function SortableTemplates({
   currentUsername,
   onReorder,
   onDeleteTemplate,
+  onTemplateUpdate,
   onAddTask,
   onDeleteTask,
   onTaskUpdate,
@@ -205,6 +210,7 @@ export function SortableTemplates({
               currentUserId={currentUserId}
               currentUsername={currentUsername}
               onDeleteTemplate={onDeleteTemplate}
+              onTemplateUpdate={onTemplateUpdate}
               onAddTask={onAddTask}
               onDeleteTask={onDeleteTask}
               onTaskUpdate={onTaskUpdate}

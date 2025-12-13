@@ -7,11 +7,15 @@ export interface User {
   createdAt: string
 }
 
+export interface ContentItem {
+  type: 'image' | 'text'
+  content: string
+}
+
 export interface Template {
   id: string
   name: string
-  images: string[]
-  copyTexts: string[]
+  items: ContentItem[]
   order: number
   tasks: Task[]
 }
@@ -19,8 +23,7 @@ export interface Template {
 export interface Task {
   id: string
   templateId: string
-  images: string[]
-  copyTexts: string[]
+  items: ContentItem[]
   notes: string
   isApproved: boolean
   creator: Pick<User, 'id' | 'username'> | null
@@ -39,21 +42,18 @@ export interface ApiResponse<T> {
 
 export interface CreateTemplateRequest {
   name: string
-  images?: string[]
-  copyTexts?: string[]
+  items?: ContentItem[]
 }
 
 export interface UpdateTemplateRequest {
   name?: string
-  images?: string[]
-  copyTexts?: string[]
+  items?: ContentItem[]
   order?: number
 }
 
 export interface CreateTaskRequest {
   templateId: string
-  images?: string[]
-  copyTexts?: string[]
+  items?: ContentItem[]
   notes?: string
   publishDate?: string
   exposure?: number
@@ -62,8 +62,7 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskRequest {
-  images?: string[]
-  copyTexts?: string[]
+  items?: ContentItem[]
   notes?: string
   isApproved?: boolean
   claimCreator?: boolean

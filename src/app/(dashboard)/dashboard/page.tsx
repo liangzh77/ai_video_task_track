@@ -113,6 +113,12 @@ export default function DashboardPage() {
     })))
   }
 
+  const handleTemplateUpdate = (templateId: string, updates: Partial<Template>) => {
+    setTemplates(templates.map(t =>
+      t.id === templateId ? { ...t, ...updates } : t
+    ))
+  }
+
   const handleTemplatesReorder = async (templateIds: string[]) => {
     // Optimistic update
     const reorderedTemplates = templateIds.map(id =>
@@ -227,6 +233,7 @@ export default function DashboardPage() {
               currentUsername={session?.user?.username}
               onReorder={handleTemplatesReorder}
               onDeleteTemplate={handleDeleteTemplate}
+              onTemplateUpdate={handleTemplateUpdate}
               onAddTask={handleAddTask}
               onDeleteTask={handleDeleteTask}
               onTaskUpdate={handleTaskUpdate}

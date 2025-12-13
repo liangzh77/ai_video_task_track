@@ -59,8 +59,7 @@ export async function PATCH(
     const body = await request.json()
 
     const {
-      images,
-      copyTexts,
+      items,
       notes,
       isApproved,
       claimCreator,
@@ -87,11 +86,8 @@ export async function PATCH(
 
     const updateData: Record<string, unknown> = {}
 
-    if (images !== undefined) {
-      updateData.images = JSON.stringify(images)
-    }
-    if (copyTexts !== undefined) {
-      updateData.copyTexts = JSON.stringify(copyTexts)
+    if (items !== undefined) {
+      updateData.items = JSON.stringify(items)
     }
     if (notes !== undefined) {
       updateData.notes = notes

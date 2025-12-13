@@ -31,8 +31,7 @@ model User {
 model Template {
   id        String   @id @default(cuid())
   name      String
-  images    Json     @default("[]")
-  copyTexts Json     @default("[]")
+  items     Json     @default("[]") // Array of { type: 'image' | 'text', content: string }
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,8 +45,7 @@ model Template {
 model Task {
   id            String    @id @default(cuid())
   templateId    String
-  images        Json      @default("[]")
-  copyTexts     Json      @default("[]")
+  items         Json      @default("[]") // Array of { type: 'image' | 'text', content: string }
   notes         String    @default("")
   isApproved    Boolean   @default(false)
   creatorId     String?
