@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
 import { Button } from '@/components/ui/button'
 import type { Template, ContentItem } from '@/types/api'
@@ -24,6 +24,8 @@ export function TemplateRow({
 }: TemplateRowProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   const items: ContentItem[] = typeof template.items === 'string'
     ? JSON.parse(template.items) as ContentItem[]
@@ -67,8 +69,97 @@ export function TemplateRow({
     }
   }
 
+  // 添加图片到模板
+  const addImageToTemplate = async (imageUrl: string) => {
+    // 检查是否已存在相同图片
+    if (items.some(item => item.type === 'image' && item.content === imageUrl)) return
+    await updateItems([...items, { type: 'image', content: imageUrl }])
+  }
+
+  // 上传文件并添加到模板
+  const uploadAndAddImage = async (file: File) => {
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      console.error('不支持的图片格式')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      console.error('图片大小不能超过 5MB')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('上传失败')
+      }
+
+      const { url } = await uploadResponse.json()
+      await addImageToTemplate(url)
+    } catch (error) {
+      console.error('上传图片失败:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (!canEdit) return
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    if (!canEdit) return
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    // 优先检查是否有内部图片 URL
+    const imageUrl = e.dataTransfer.getData('application/x-image-url')
+    if (imageUrl) {
+      await addImageToTemplate(imageUrl)
+      return
+    }
+
+    // 检查是否有文件
+    const files = Array.from(e.dataTransfer.files)
+    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+
+    for (const file of imageFiles) {
+      await uploadAndAddImage(file)
+    }
+  }
+
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 group">
+    <div
+      className={`bg-blue-50 border rounded-lg p-4 group relative ${
+        isDragOver ? 'border-blue-500 border-2 bg-blue-100 shadow-md' : 'border-blue-200'
+      } ${isUploading ? 'opacity-70' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isUploading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg z-10">
+          <span className="text-sm text-blue-600">上传中...</span>
+        </div>
+      )}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-blue-900">
