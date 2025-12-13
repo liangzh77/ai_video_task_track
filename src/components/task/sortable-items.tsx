@@ -50,6 +50,21 @@ function SortableItem({
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(item.content)
   const [isLoading, setIsLoading] = useState(true)
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setPreviewPosition({ x: e.clientX, y: e.clientY })
+  }
+
+  const handleMouseEnter = (e: React.MouseEvent) => {
+    setPreviewPosition({ x: e.clientX, y: e.clientY })
+    setShowPreview(true)
+  }
+
+  const handleMouseLeave = () => {
+    setShowPreview(false)
+  }
 
   const {
     attributes,
@@ -109,6 +124,7 @@ function SortableItem({
 
   if (item.type === 'image') {
     return (
+      <>
       <div
         ref={setNodeRef}
         style={style}
@@ -122,6 +138,9 @@ function SortableItem({
         {...listeners}
         draggable={draggable}
         onDragStart={handleDragStart}
+        onMouseEnter={handleMouseEnter}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         <button
           type="button"
@@ -243,11 +262,32 @@ function SortableItem({
           </div>
         )}
       </div>
+
+      {/* Image preview on hover */}
+      {showPreview && !isEditing && !showDeleteConfirm && (
+        <div
+          className="fixed z-50 pointer-events-none"
+          style={{
+            left: previewPosition.x + 20,
+            top: previewPosition.y - 100,
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[60vw] max-h-[60vh]">
+            <img
+              src={item.content}
+              alt="预览"
+              className="max-w-full max-h-[55vh] object-contain"
+            />
+          </div>
+        </div>
+      )}
+      </>
     )
   }
 
   // Text item - 卡片样式，和图片一样高度
   return (
+    <>
     <div
       ref={setNodeRef}
       style={style}
@@ -258,6 +298,9 @@ function SortableItem({
       `}
       {...attributes}
       {...listeners}
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       {isEditing ? (
         <div className="h-full flex items-center justify-center p-2">
@@ -369,6 +412,24 @@ function SortableItem({
         </>
       )}
     </div>
+
+    {/* Text preview on hover */}
+    {showPreview && !isEditing && !showDeleteConfirm && (
+      <div
+        className="fixed z-50 pointer-events-none"
+        style={{
+          left: previewPosition.x + 20,
+          top: previewPosition.y - 20,
+        }}
+      >
+        <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px]">
+          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+            {item.content}
+          </p>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 
