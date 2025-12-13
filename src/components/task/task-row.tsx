@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, DragEvent } from 'react'
-import { Thumbnail } from '@/components/image/thumbnail'
+import { SortableImages } from '@/components/image/sortable-images'
+import { SortableCopyTexts } from '@/components/task/sortable-copy-texts'
 import { EditableField } from '@/components/task/editable-field'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -90,19 +91,17 @@ export function TaskRow({
 
   const isCreator = task.creator?.id === currentUserId
 
-  // 添加图片到任务
-  const addImageToTask = async (imageUrl: string) => {
-    if (images.includes(imageUrl)) return // 避免重复
-
+  // 更新图片列表
+  const updateImages = async (newImages: string[]) => {
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: [...images, imageUrl] }),
+        body: JSON.stringify({ images: newImages }),
       })
 
       if (!response.ok) {
-        throw new Error('添加图片失败')
+        throw new Error('更新图片失败')
       }
 
       const updatedTask = await response.json()
@@ -110,7 +109,41 @@ export function TaskRow({
         onTaskUpdate(task.id, updatedTask)
       }
     } catch (error) {
-      console.error('添加图片失败:', error)
+      console.error('更新图片失败:', error)
+    }
+  }
+
+  // 添加图片到任务
+  const addImageToTask = async (imageUrl: string) => {
+    if (images.includes(imageUrl)) return // 避免重复
+    await updateImages([...images, imageUrl])
+  }
+
+  // 删除图片
+  const handleDeleteImage = async (url: string) => {
+    const newImages = images.filter(img => img !== url)
+    await updateImages(newImages)
+  }
+
+  // 更新文案列表
+  const updateCopyTexts = async (newTexts: string[]) => {
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ copyTexts: newTexts }),
+      })
+
+      if (!response.ok) {
+        throw new Error('更新文案失败')
+      }
+
+      const updatedTask = await response.json()
+      if (onTaskUpdate) {
+        onTaskUpdate(task.id, updatedTask)
+      }
+    } catch (error) {
+      console.error('更新文案失败:', error)
     }
   }
 
@@ -215,15 +248,14 @@ export function TaskRow({
         {/* Images */}
         <div className="flex gap-2 flex-wrap w-full sm:w-auto min-h-[100px]">
           {images.length > 0 ? (
-            images.map((url, index) => (
-              <Thumbnail
-                key={`${task.id}-img-${index}`}
-                src={url}
-                alt={`任务图片 ${index + 1}`}
-                onClick={() => onImageClick(url)}
-                isSelected={selectedImageUrl === url}
-              />
-            ))
+            <SortableImages
+              images={images}
+              onReorder={updateImages}
+              onDelete={handleDeleteImage}
+              onImageClick={onImageClick}
+              selectedImageUrl={selectedImageUrl}
+              disabled={!canEdit}
+            />
           ) : canEdit ? (
             <div className={`flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed rounded text-gray-400 text-xs text-center ${
               isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
@@ -234,18 +266,13 @@ export function TaskRow({
         </div>
 
         {/* Copy Texts */}
-        {copyTexts.length > 0 && (
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            {copyTexts.map((text, index) => (
-              <span
-                key={`${task.id}-text-${index}`}
-                className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded break-all"
-              >
-                {text}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="w-full sm:w-auto sm:min-w-[200px]">
+          <SortableCopyTexts
+            texts={copyTexts}
+            onUpdate={updateCopyTexts}
+            disabled={!canEdit}
+          />
+        </div>
 
         {/* Task Info */}
         <div className="w-full sm:flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-sm">
