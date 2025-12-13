@@ -47,8 +47,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    // Only admin can create templates
-    if (session.user.role !== 'ADMIN') {
+    // Check canCRUD permission
+    if (!session.user.canCRUD) {
       return NextResponse.json({ error: '无权限' }, { status: 403 })
     }
 
