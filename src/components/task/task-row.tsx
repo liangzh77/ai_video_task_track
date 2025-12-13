@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, DragEvent } from 'react'
 import { Thumbnail } from '@/components/image/thumbnail'
 import { EditableField } from '@/components/task/editable-field'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -31,6 +31,8 @@ export function TaskRow({
 }: TaskRowProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const images = typeof task.images === 'string'
     ? JSON.parse(task.images) as string[]
     : task.images as string[]
@@ -88,6 +90,100 @@ export function TaskRow({
 
   const isCreator = task.creator?.id === currentUserId
 
+  // 添加图片到任务
+  const addImageToTask = async (imageUrl: string) => {
+    if (images.includes(imageUrl)) return // 避免重复
+
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: [...images, imageUrl] }),
+      })
+
+      if (!response.ok) {
+        throw new Error('添加图片失败')
+      }
+
+      const updatedTask = await response.json()
+      if (onTaskUpdate) {
+        onTaskUpdate(task.id, updatedTask)
+      }
+    } catch (error) {
+      console.error('添加图片失败:', error)
+    }
+  }
+
+  // 上传文件并添加到任务
+  const uploadAndAddImage = async (file: File) => {
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      console.error('不支持的图片格式')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      console.error('图片大小不能超过 5MB')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('上传失败')
+      }
+
+      const { url } = await uploadResponse.json()
+      await addImageToTask(url)
+    } catch (error) {
+      console.error('上传图片失败:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (!canEdit) return
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    if (!canEdit) return
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    // 优先检查是否有内部图片 URL
+    const imageUrl = e.dataTransfer.getData('application/x-image-url')
+    if (imageUrl) {
+      await addImageToTask(imageUrl)
+      return
+    }
+
+    // 检查是否有文件
+    const files = Array.from(e.dataTransfer.files)
+    const imageFiles = files.filter(file => file.type.startsWith('image/'))
+
+    for (const file of imageFiles) {
+      await uploadAndAddImage(file)
+    }
+  }
+
   const handleDelete = async () => {
     if (!onDelete) return
     setIsDeleting(true)
@@ -102,12 +198,24 @@ export function TaskRow({
   }
 
   return (
-    <div className="bg-white border rounded-lg p-3 sm:p-4 ml-2 sm:ml-6 hover:shadow-sm transition-shadow group">
+    <div
+      className={`relative bg-white border rounded-lg p-3 sm:p-4 ml-2 sm:ml-6 hover:shadow-sm transition-all group ${
+        isDragOver ? 'border-blue-500 border-2 bg-blue-50 shadow-md' : ''
+      } ${isUploading ? 'opacity-70' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isUploading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg z-10">
+          <span className="text-sm text-blue-600">上传中...</span>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row flex-wrap items-start gap-3 sm:gap-4">
         {/* Images */}
-        {images.length > 0 && (
-          <div className="flex gap-2 flex-wrap w-full sm:w-auto">
-            {images.map((url, index) => (
+        <div className="flex gap-2 flex-wrap w-full sm:w-auto min-h-[100px]">
+          {images.length > 0 ? (
+            images.map((url, index) => (
               <Thumbnail
                 key={`${task.id}-img-${index}`}
                 src={url}
@@ -115,9 +223,15 @@ export function TaskRow({
                 onClick={() => onImageClick(url)}
                 isSelected={selectedImageUrl === url}
               />
-            ))}
-          </div>
-        )}
+            ))
+          ) : canEdit ? (
+            <div className={`flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed rounded text-gray-400 text-xs text-center ${
+              isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+            }`}>
+              拖拽图片到此处
+            </div>
+          ) : null}
+        </div>
 
         {/* Copy Texts */}
         {copyTexts.length > 0 && (

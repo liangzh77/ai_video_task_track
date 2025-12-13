@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, DragEvent } from 'react'
 import Image from 'next/image'
 
 interface ThumbnailProps {
@@ -8,18 +8,35 @@ interface ThumbnailProps {
   alt?: string
   onClick?: () => void
   isSelected?: boolean
+  draggable?: boolean
 }
 
-export function Thumbnail({ src, alt = '缩略图', onClick, isSelected = false }: ThumbnailProps) {
+export function Thumbnail({ src, alt = '缩略图', onClick, isSelected = false, draggable = false }: ThumbnailProps) {
   const [isLoading, setIsLoading] = useState(true)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDragStart = (e: DragEvent<HTMLButtonElement>) => {
+    if (!draggable) return
+    setIsDragging(true)
+    e.dataTransfer.setData('text/plain', src)
+    e.dataTransfer.setData('application/x-image-url', src)
+    e.dataTransfer.effectAllowed = 'copy'
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
 
   return (
     <button
       type="button"
       onClick={onClick}
+      draggable={draggable}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       className={`relative h-[100px] flex-shrink-0 overflow-hidden rounded border-2 transition-all ${
         isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent hover:border-gray-300'
-      }`}
+      } ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragging ? 'opacity-50' : ''}`}
     >
       {isLoading && (
         <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
@@ -36,6 +53,7 @@ export function Thumbnail({ src, alt = '缩略图', onClick, isSelected = false 
         className={`h-full w-auto object-contain transition-opacity ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         onLoad={() => setIsLoading(false)}
         sizes="100px"
+        draggable={false}
       />
     </button>
   )

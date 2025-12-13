@@ -60,6 +60,7 @@ export function TemplateRow({
                 alt={`${template.name} 图片 ${index + 1}`}
                 onClick={() => onImageClick(url)}
                 isSelected={selectedImageUrl === url}
+                draggable={canEdit}
               />
             ))}
           </div>
