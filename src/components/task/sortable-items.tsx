@@ -53,6 +53,33 @@ function SortableItem({
   const [showPreview, setShowPreview] = useState(false)
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
 
+  // 计算预览位置，确保不超出视口边界
+  const getAdjustedPosition = (x: number, y: number, isImage: boolean) => {
+    const viewportHeight = window.innerHeight
+    const viewportWidth = window.innerWidth
+    // 估算预览高度：图片约 80vh，文案约 150px
+    const estimatedHeight = isImage ? viewportHeight * 0.8 : 150
+    const estimatedWidth = isImage ? viewportWidth * 0.5 : 400
+
+    let adjustedY = y - (isImage ? 100 : 20)
+    let adjustedX = x + 20
+
+    // 检查底部是否超出
+    if (adjustedY + estimatedHeight > viewportHeight - 20) {
+      adjustedY = viewportHeight - estimatedHeight - 20
+    }
+    // 检查顶部是否超出
+    if (adjustedY < 20) {
+      adjustedY = 20
+    }
+    // 检查右侧是否超出
+    if (adjustedX + estimatedWidth > viewportWidth - 20) {
+      adjustedX = x - estimatedWidth - 20
+    }
+
+    return { x: adjustedX, y: adjustedY }
+  }
+
   const handleMouseMove = (e: React.MouseEvent) => {
     setPreviewPosition({ x: e.clientX, y: e.clientY })
   }
@@ -264,23 +291,26 @@ function SortableItem({
       </div>
 
       {/* Image preview on hover */}
-      {showPreview && !isEditing && !showDeleteConfirm && (
-        <div
-          className="fixed z-50 pointer-events-none"
-          style={{
-            left: previewPosition.x + 20,
-            top: previewPosition.y - 100,
-          }}
-        >
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[85vw] max-h-[85vh]">
-            <img
-              src={item.content}
-              alt="预览"
-              className="max-w-full max-h-[80vh] object-contain"
-            />
+      {showPreview && !isEditing && !showDeleteConfirm && (() => {
+        const pos = getAdjustedPosition(previewPosition.x, previewPosition.y, true)
+        return (
+          <div
+            className="fixed z-50 pointer-events-none"
+            style={{
+              left: pos.x,
+              top: pos.y,
+            }}
+          >
+            <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[85vw] max-h-[85vh]">
+              <img
+                src={item.content}
+                alt="预览"
+                className="max-w-full max-h-[80vh] object-contain"
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
       </>
     )
   }
@@ -414,21 +444,24 @@ function SortableItem({
     </div>
 
     {/* Text preview on hover */}
-    {showPreview && !isEditing && !showDeleteConfirm && (
-      <div
-        className="fixed z-50 pointer-events-none"
-        style={{
-          left: previewPosition.x + 20,
-          top: previewPosition.y - 20,
-        }}
-      >
-        <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px]">
-          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
-            {item.content}
-          </p>
+    {showPreview && !isEditing && !showDeleteConfirm && (() => {
+      const pos = getAdjustedPosition(previewPosition.x, previewPosition.y, false)
+      return (
+        <div
+          className="fixed z-50 pointer-events-none"
+          style={{
+            left: pos.x,
+            top: pos.y,
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px]">
+            <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+              {item.content}
+            </p>
+          </div>
         </div>
-      </div>
-    )}
+      )
+    })()}
     </>
   )
 }
