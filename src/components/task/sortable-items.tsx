@@ -272,11 +272,11 @@ function SortableItem({
             top: previewPosition.y - 100,
           }}
         >
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[60vw] max-h-[60vh]">
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[85vw] max-h-[85vh]">
             <img
               src={item.content}
               alt="预览"
-              className="max-w-full max-h-[55vh] object-contain"
+              className="max-w-full max-h-[80vh] object-contain"
             />
           </div>
         </div>
