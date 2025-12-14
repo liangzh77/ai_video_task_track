@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: '任务跟踪系统',
   description: '任务跟踪与模板管理系统',
+  icons: {
+    icon: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
