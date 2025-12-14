@@ -243,7 +243,7 @@ export function TaskRow({
 
   return (
     <div
-      className={`relative bg-white border rounded-lg p-3 sm:p-4 ml-2 sm:ml-6 hover:shadow-sm transition-all group ${
+      className={`relative bg-white border rounded-lg p-2 ml-2 sm:ml-4 hover:shadow-sm transition-all group ${
         isDragOver ? 'border-blue-500 border-2 bg-blue-50 shadow-md' : ''
       } ${isUploading ? 'opacity-70' : ''}`}
       onDragOver={handleDragOver}
@@ -255,7 +255,7 @@ export function TaskRow({
           <span className="text-sm text-blue-600">上传中...</span>
         </div>
       )}
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col gap-2">
         {/* Items (Images + Texts) */}
         <SortableItems
           items={items}
@@ -266,8 +266,8 @@ export function TaskRow({
           isSaving={isSaving}
         />
 
-        {/* Task Info */}
-        <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-sm">
+        {/* Task Info - single row */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <div>
             <span className="text-gray-500">备注：</span>
             <EditableField
@@ -375,7 +375,7 @@ export function TaskRow({
 
           {/* Delete button */}
           {canEdit && onDelete && (
-            <div className="col-span-full flex justify-end">
+            <div className="ml-auto">
               {showDeleteConfirm ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-red-600">确认删除？</span>
@@ -401,7 +401,7 @@ export function TaskRow({
                   size="sm"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 h-6 px-2"
                 >
                   删除
                 </Button>
