@@ -198,7 +198,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <div className="text-sm text-gray-500">
             欢迎，{session?.user?.username}
-            {canEdit && (
+            {session?.user?.canCRUD && (
               <span className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">
                 可编辑
               </span>
