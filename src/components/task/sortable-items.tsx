@@ -388,7 +388,7 @@ function SortableItem({
               if (!disabled) setIsEditing(true)
             }}
           >
-            <span className="text-sm text-gray-700 text-center break-words line-clamp-4">
+            <span className="text-sm text-gray-700 text-center break-words line-clamp-4 whitespace-pre-wrap">
               {item.content}
             </span>
           </div>
