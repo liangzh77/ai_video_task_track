@@ -205,8 +205,8 @@ function SortableItem({
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
         )}
 
-        {/* Action buttons */}
-        {!disabled && !showDeleteConfirm && (
+        {/* Action buttons - Copy and Download always visible, Delete only when not disabled */}
+        {!showDeleteConfirm && (
           <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {/* Copy image button */}
             <button
@@ -257,15 +257,17 @@ function SortableItem({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </button>
-            {/* Delete button */}
-            <button
-              type="button"
-              onClick={handleDeleteClick}
-              className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-              title="删除"
-            >
-              ×
-            </button>
+            {/* Delete button - only when not disabled */}
+            {!disabled && (
+              <button
+                type="button"
+                onClick={handleDeleteClick}
+                className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                title="删除"
+              >
+                ×
+              </button>
+            )}
           </div>
         )}
 
@@ -371,8 +373,8 @@ function SortableItem({
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
           )}
 
-          {/* Action buttons */}
-          {!disabled && !showDeleteConfirm && (
+          {/* Action buttons - Copy and Download always visible, Delete only when not disabled */}
+          {!showDeleteConfirm && (
             <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               {/* Copy button */}
               <button
@@ -408,15 +410,17 @@ function SortableItem({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </button>
-              {/* Delete button */}
-              <button
-                type="button"
-                onClick={handleDeleteClick}
-                className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-                title="删除"
-              >
-                ×
-              </button>
+              {/* Delete button - only when not disabled */}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={handleDeleteClick}
+                  className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                  title="删除"
+                >
+                  ×
+                </button>
+              )}
             </div>
           )}
 
