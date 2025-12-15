@@ -458,7 +458,7 @@ function SortableItem({
             top: pos.y,
           }}
         >
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px]">
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px] max-h-[50vh] overflow-y-auto">
             <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
               {item.content}
             </p>
