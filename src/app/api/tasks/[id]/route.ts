@@ -50,11 +50,6 @@ export async function PATCH(
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    // Check if user has CRUD permission
-    if (!session.user.canCRUD && session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: '无编辑权限' }, { status: 403 })
-    }
-
     const { id } = await params
     const body = await request.json()
 
@@ -80,15 +75,42 @@ export async function PATCH(
       return NextResponse.json({ error: '任务不存在' }, { status: 404 })
     }
 
+    const isAdmin = session.user.role === 'ADMIN'
+    const canCRUD = session.user.canCRUD || isAdmin
+    const canApprove = session.user.canApprove || isAdmin
+
+    // Check permissions based on what's being updated
+    const isUpdatingCRUDFields = items !== undefined || notes !== undefined ||
+      publishDate !== undefined || exposure !== undefined ||
+      registrations !== undefined || profit !== undefined || order !== undefined
+
+    const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
+      claimCreator === true || removeCreator === true
+
+    // If updating CRUD fields, need canCRUD permission
+    if (isUpdatingCRUDFields && !canCRUD) {
+      return NextResponse.json({ error: '无编辑权限' }, { status: 403 })
+    }
+
+    // If only updating approve fields, need canApprove permission
+    if (!isUpdatingCRUDFields && isUpdatingApproveFields && !canApprove) {
+      return NextResponse.json({ error: '无审批权限' }, { status: 403 })
+    }
+
+    // If user has neither permission, reject
+    if (!canCRUD && !canApprove) {
+      return NextResponse.json({ error: '无权限' }, { status: 403 })
+    }
+
     // Only users with canApprove can change approval status
-    if (typeof isApproved === 'boolean' && !session.user.canApprove && session.user.role !== 'ADMIN') {
+    if (typeof isApproved === 'boolean' && !canApprove) {
       return NextResponse.json({ error: '无审批权限' }, { status: 403 })
     }
 
     // Only creator or users with canApprove can remove creator
     if (removeCreator === true) {
       const isCreator = existingTask.creatorId === session.user.id
-      if (!isCreator && !session.user.canApprove && session.user.role !== 'ADMIN') {
+      if (!isCreator && !canApprove) {
         return NextResponse.json({ error: '无权移除制作人' }, { status: 403 })
       }
     }
