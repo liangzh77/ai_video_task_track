@@ -380,7 +380,7 @@ function SortableItem({
       ) : (
         <>
           <div
-            className={`h-full flex items-center justify-center p-2 ${
+            className={`h-full flex items-start justify-start p-2 overflow-hidden ${
               disabled ? '' : 'cursor-pointer hover:bg-gray-200'
             }`}
             onClick={(e) => {
@@ -388,7 +388,7 @@ function SortableItem({
               if (!disabled) setIsEditing(true)
             }}
           >
-            <span className="text-sm text-gray-700 text-center break-words line-clamp-4 whitespace-pre-wrap">
+            <span className="text-sm text-gray-700 text-left break-words line-clamp-4 whitespace-pre-wrap">
               {item.content}
             </span>
           </div>
