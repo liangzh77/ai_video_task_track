@@ -189,7 +189,7 @@ export default function DashboardPage() {
     )
   }
 
-  const canEdit = session?.user?.canCRUD || false
+  const canEdit = session?.user?.canCRUD || session?.user?.canApprove || false
 
   return (
     <div className="max-w-full mx-auto">
