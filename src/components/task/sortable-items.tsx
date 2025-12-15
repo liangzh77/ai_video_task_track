@@ -520,7 +520,6 @@ export function SortableItems({
   draggableImages = false,
   isSaving = false,
 }: SortableItemsProps) {
-  const [newText, setNewText] = useState('')
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -555,73 +554,51 @@ export function SortableItems({
     onUpdate(newItems)
   }
 
-  const handleAddText = () => {
-    if (!newText.trim()) return
-    onUpdate([...items, { type: 'text', content: newText.trim() }])
-    setNewText('')
-  }
-
-  const handleAddKeyDown = (e: React.KeyboardEvent) => {
-    // Enter 键正常换行，不阻止
-    if (e.key === 'Escape') {
-      setNewText('')
-    }
+  const handleAddEmptyText = () => {
+    onUpdate([...items, { type: 'text', content: '' }])
   }
 
   const itemIds = items.map((_, i) => `item-${i}`)
 
   return (
-    <div className="space-y-2">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
-          <div className="flex gap-2 flex-wrap items-center min-h-[100px]">
-            {items.map((item, index) => (
-              <SortableItem
-                key={`item-${index}`}
-                id={`item-${index}`}
-                item={item}
-                onDelete={() => handleDelete(index)}
-                onEdit={item.type === 'text' ? (newContent) => handleEdit(index, newContent) : undefined}
-                onImageClick={onImageClick}
-                isSelected={item.type === 'image' && selectedImageUrl === item.content}
-                disabled={disabled}
-                draggable={draggableImages && item.type === 'image'}
-                isSaving={isSaving}
-              />
-            ))}
-            {items.length === 0 && !disabled && (
-              <div className="flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
-                拖拽内容到此处
-              </div>
-            )}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {!disabled && (
-        <div className="flex items-start gap-2">
-          <textarea
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            onKeyDown={handleAddKeyDown}
-            placeholder="添加新文案（支持换行）..."
-            className="text-sm w-[200px] min-h-[60px] max-h-[120px] resize-y border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={2}
-          />
-          <Button
-            size="sm"
-            onClick={handleAddText}
-            disabled={!newText.trim()}
-            className="h-8 px-4 whitespace-nowrap"
-          >
-            添加
-          </Button>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
+        <div className="flex gap-2 flex-wrap items-center min-h-[100px]">
+          {items.map((item, index) => (
+            <SortableItem
+              key={`item-${index}`}
+              id={`item-${index}`}
+              item={item}
+              onDelete={() => handleDelete(index)}
+              onEdit={item.type === 'text' ? (newContent) => handleEdit(index, newContent) : undefined}
+              onImageClick={onImageClick}
+              isSelected={item.type === 'image' && selectedImageUrl === item.content}
+              disabled={disabled}
+              draggable={draggableImages && item.type === 'image'}
+              isSaving={isSaving}
+            />
+          ))}
+          {items.length === 0 && !disabled && (
+            <div className="flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
+              拖拽内容到此处
+            </div>
+          )}
+          {!disabled && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleAddEmptyText}
+              className="h-[100px] px-4 whitespace-nowrap ml-auto"
+            >
+              添加文案
+            </Button>
+          )}
         </div>
-      )}
-    </div>
+      </SortableContext>
+    </DndContext>
   )
 }
