@@ -19,7 +19,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Image from 'next/image'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import type { ContentItem } from '@/types/api'
 
@@ -167,12 +166,11 @@ function SortableItem({
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSaveText()
-    } else if (e.key === 'Escape') {
+    if (e.key === 'Escape') {
       setEditValue(item.content)
       setIsEditing(false)
     }
+    // Enter 键正常换行，不阻止
   }
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -368,14 +366,15 @@ function SortableItem({
       onMouseLeave={handleMouseLeave}
     >
       {isEditing ? (
-        <div className="h-full flex items-center justify-center p-2">
-          <Input
+        <div className="absolute inset-0 z-10 p-1">
+          <textarea
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleSaveText}
             onKeyDown={handleKeyDown}
             autoFocus
-            className="h-8 text-sm w-full"
+            className="w-full h-full text-sm resize-none border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="输入文案..."
           />
         </div>
       ) : (
@@ -563,8 +562,9 @@ export function SortableItems({
   }
 
   const handleAddKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAddText()
+    // Enter 键正常换行，不阻止
+    if (e.key === 'Escape') {
+      setNewText('')
     }
   }
 
@@ -603,13 +603,14 @@ export function SortableItems({
       </DndContext>
 
       {!disabled && (
-        <div className="flex items-center gap-2">
-          <Input
+        <div className="flex items-start gap-2">
+          <textarea
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
             onKeyDown={handleAddKeyDown}
-            placeholder="添加新文案..."
-            className="h-8 text-sm w-[160px]"
+            placeholder="添加新文案（支持换行）..."
+            className="text-sm w-[200px] min-h-[60px] max-h-[120px] resize-y border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={2}
           />
           <Button
             size="sm"
