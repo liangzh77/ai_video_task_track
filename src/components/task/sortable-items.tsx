@@ -53,6 +53,7 @@ function SortableItem({
   const [showPreview, setShowPreview] = useState(false)
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
   const [adjustedPreviewPos, setAdjustedPreviewPos] = useState({ x: 0, y: 0 })
+  const [previewMaxWidth, setPreviewMaxWidth] = useState<number | undefined>(undefined)
   const previewRef = useRef<HTMLDivElement>(null)
 
   // 计算图片预览位置（图片有固定 max-height，可以预估）
@@ -78,17 +79,21 @@ function SortableItem({
     return { x: adjustedX, y: adjustedY }
   }
 
-  // 根据文案预览窗口实际高度调整位置
+  // 根据文案预览窗口实际尺寸调整位置和宽度
   useLayoutEffect(() => {
-    if (showPreview && previewRef.current) {
+    if (showPreview && previewRef.current && item.type === 'text') {
       const viewportHeight = window.innerHeight
       const viewportWidth = window.innerWidth
       const rect = previewRef.current.getBoundingClientRect()
       const actualHeight = rect.height
       const actualWidth = rect.width
 
-      let adjustedY = previewPosition.y - (item.type === 'image' ? 100 : 20)
+      let adjustedY = previewPosition.y - 20
       let adjustedX = previewPosition.x + 20
+
+      // 计算可用的最大宽度（从鼠标位置到右边界）
+      const availableWidth = viewportWidth - previewPosition.x - 40 // 20px 左右边距
+      setPreviewMaxWidth(Math.max(availableWidth, 200)) // 最小 200px
 
       // 检查底部是否超出，如果超出则向上移动
       if (adjustedY + actualHeight > viewportHeight - 20) {
@@ -98,10 +103,7 @@ function SortableItem({
       if (adjustedY < 20) {
         adjustedY = 20
       }
-      // 检查右侧是否超出
-      if (adjustedX + actualWidth > viewportWidth - 20) {
-        adjustedX = previewPosition.x - actualWidth - 20
-      }
+      // 检查右侧是否超出（预览窗口会被 maxWidth 限制，不需要移动到左侧）
 
       setAdjustedPreviewPos({ x: adjustedX, y: adjustedY })
     }
@@ -486,10 +488,11 @@ function SortableItem({
         style={{
           left: adjustedPreviewPos.x,
           top: adjustedPreviewPos.y,
+          maxWidth: previewMaxWidth,
         }}
       >
-        <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px]">
-          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+        <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 w-fit">
+          <p className="text-sm text-gray-800 whitespace-pre-wrap">
             {item.content}
           </p>
         </div>
