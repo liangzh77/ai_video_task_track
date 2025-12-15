@@ -319,7 +319,7 @@ export function TaskRow({
                   </button>
                 )}
               </>
-            ) : canEdit && currentUserId ? (
+            ) : (canEdit || canApprove) && currentUserId && task.isApproved ? (
               <button
                 type="button"
                 onClick={handleClaimCreator}
