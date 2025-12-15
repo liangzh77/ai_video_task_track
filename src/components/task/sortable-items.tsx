@@ -57,8 +57,8 @@ function SortableItem({
   const getAdjustedPosition = (x: number, y: number, isImage: boolean) => {
     const viewportHeight = window.innerHeight
     const viewportWidth = window.innerWidth
-    // 估算预览高度：图片约 80vh，文案约 150px
-    const estimatedHeight = isImage ? viewportHeight * 0.8 : 150
+    // 估算预览高度：图片约 80vh，文案约 50vh（有 max-height 限制）
+    const estimatedHeight = isImage ? viewportHeight * 0.8 : viewportHeight * 0.5
     const estimatedWidth = isImage ? viewportWidth * 0.5 : 400
 
     let adjustedY = y - (isImage ? 100 : 20)
