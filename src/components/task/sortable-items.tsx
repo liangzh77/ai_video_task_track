@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -52,27 +52,25 @@ function SortableItem({
   const [isLoading, setIsLoading] = useState(true)
   const [showPreview, setShowPreview] = useState(false)
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
+  const [adjustedPreviewPos, setAdjustedPreviewPos] = useState({ x: 0, y: 0 })
+  const previewRef = useRef<HTMLDivElement>(null)
 
-  // 计算预览位置，确保不超出视口边界
-  const getAdjustedPosition = (x: number, y: number, isImage: boolean) => {
+  // 计算图片预览位置（图片有固定 max-height，可以预估）
+  const getAdjustedPosition = (x: number, y: number) => {
     const viewportHeight = window.innerHeight
     const viewportWidth = window.innerWidth
-    // 估算预览高度：图片约 80vh，文案约 50vh（有 max-height 限制）
-    const estimatedHeight = isImage ? viewportHeight * 0.8 : viewportHeight * 0.5
-    const estimatedWidth = isImage ? viewportWidth * 0.5 : 400
+    const estimatedHeight = viewportHeight * 0.8
+    const estimatedWidth = viewportWidth * 0.5
 
-    let adjustedY = y - (isImage ? 100 : 20)
+    let adjustedY = y - 100
     let adjustedX = x + 20
 
-    // 检查底部是否超出
     if (adjustedY + estimatedHeight > viewportHeight - 20) {
       adjustedY = viewportHeight - estimatedHeight - 20
     }
-    // 检查顶部是否超出
     if (adjustedY < 20) {
       adjustedY = 20
     }
-    // 检查右侧是否超出
     if (adjustedX + estimatedWidth > viewportWidth - 20) {
       adjustedX = x - estimatedWidth - 20
     }
@@ -80,12 +78,45 @@ function SortableItem({
     return { x: adjustedX, y: adjustedY }
   }
 
+  // 根据文案预览窗口实际高度调整位置
+  useLayoutEffect(() => {
+    if (showPreview && previewRef.current) {
+      const viewportHeight = window.innerHeight
+      const viewportWidth = window.innerWidth
+      const rect = previewRef.current.getBoundingClientRect()
+      const actualHeight = rect.height
+      const actualWidth = rect.width
+
+      let adjustedY = previewPosition.y - (item.type === 'image' ? 100 : 20)
+      let adjustedX = previewPosition.x + 20
+
+      // 检查底部是否超出，如果超出则向上移动
+      if (adjustedY + actualHeight > viewportHeight - 20) {
+        adjustedY = viewportHeight - actualHeight - 20
+      }
+      // 检查顶部是否超出
+      if (adjustedY < 20) {
+        adjustedY = 20
+      }
+      // 检查右侧是否超出
+      if (adjustedX + actualWidth > viewportWidth - 20) {
+        adjustedX = previewPosition.x - actualWidth - 20
+      }
+
+      setAdjustedPreviewPos({ x: adjustedX, y: adjustedY })
+    }
+  }, [showPreview, previewPosition, item.type])
+
   const handleMouseMove = (e: React.MouseEvent) => {
     setPreviewPosition({ x: e.clientX, y: e.clientY })
   }
 
   const handleMouseEnter = (e: React.MouseEvent) => {
-    setPreviewPosition({ x: e.clientX, y: e.clientY })
+    const x = e.clientX
+    const y = e.clientY
+    setPreviewPosition({ x, y })
+    // 初始位置设为鼠标右侧
+    setAdjustedPreviewPos({ x: x + 20, y: y - 20 })
     setShowPreview(true)
   }
 
@@ -294,7 +325,7 @@ function SortableItem({
 
       {/* Image preview on hover */}
       {showPreview && !isEditing && !showDeleteConfirm && (() => {
-        const pos = getAdjustedPosition(previewPosition.x, previewPosition.y, true)
+        const pos = getAdjustedPosition(previewPosition.x, previewPosition.y)
         return (
           <div
             className="fixed z-50 pointer-events-none"
@@ -448,24 +479,22 @@ function SortableItem({
     </div>
 
     {/* Text preview on hover */}
-    {showPreview && !isEditing && !showDeleteConfirm && (() => {
-      const pos = getAdjustedPosition(previewPosition.x, previewPosition.y, false)
-      return (
-        <div
-          className="fixed z-50 pointer-events-none"
-          style={{
-            left: pos.x,
-            top: pos.y,
-          }}
-        >
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px] max-h-[50vh] overflow-y-auto">
-            <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
-              {item.content}
-            </p>
-          </div>
+    {showPreview && !isEditing && !showDeleteConfirm && (
+      <div
+        ref={previewRef}
+        className="fixed z-50 pointer-events-none"
+        style={{
+          left: adjustedPreviewPos.x,
+          top: adjustedPreviewPos.y,
+        }}
+      >
+        <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3 max-w-[400px]">
+          <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+            {item.content}
+          </p>
         </div>
-      )
-    })()}
+      </div>
+    )}
     </>
   )
 }
