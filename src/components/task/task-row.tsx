@@ -124,7 +124,8 @@ export function TaskRow({
   }
 
   const isCreator = task.creator?.id === currentUserId
-  const canRemoveCreator = isCreator || canApprove
+  // 移除制作人：需要 canApprove 权限，或者是制作人本人且有 canEdit 权限
+  const canRemoveCreator = canApprove || (isCreator && canEdit)
 
   // 更新 items 列表
   const updateItems = async (newItems: ContentItem[]) => {

@@ -47,8 +47,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    // Check canCRUD or canApprove permission
-    if (!session.user.canCRUD && !session.user.canApprove && session.user.role !== 'ADMIN') {
+    // Check canCRUD permission
+    if (!session.user.canCRUD && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: '无权限' }, { status: 403 })
     }
 
