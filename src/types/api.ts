@@ -24,6 +24,7 @@ export interface Task {
   id: string
   templateId: string
   items: ContentItem[]
+  videoUrl: string | null
   materialId: string
   notes: string
   isApproved: boolean
@@ -65,6 +66,7 @@ export interface CreateTaskRequest {
 
 export interface UpdateTaskRequest {
   items?: ContentItem[]
+  videoUrl?: string | null
   materialId?: string
   notes?: string
   isApproved?: boolean

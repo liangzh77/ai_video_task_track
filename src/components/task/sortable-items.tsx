@@ -509,6 +509,7 @@ interface SortableItemsProps {
   disabled?: boolean
   draggableImages?: boolean
   isSaving?: boolean
+  endSlot?: React.ReactNode
 }
 
 export function SortableItems({
@@ -519,6 +520,7 @@ export function SortableItems({
   disabled = false,
   draggableImages = false,
   isSaving = false,
+  endSlot,
 }: SortableItemsProps) {
 
   const sensors = useSensors(
@@ -587,6 +589,7 @@ export function SortableItems({
               拖拽内容到此处
             </div>
           )}
+          {endSlot}
           {!disabled && (
             <Button
               size="sm"

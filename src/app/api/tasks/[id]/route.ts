@@ -55,6 +55,7 @@ export async function PATCH(
 
     const {
       items,
+      videoUrl,
       materialId,
       notes,
       isApproved,
@@ -81,9 +82,10 @@ export async function PATCH(
     const canApprove = session.user.canApprove || isAdmin
 
     // Check permissions based on what's being updated
-    const isUpdatingCRUDFields = items !== undefined || materialId !== undefined ||
-      notes !== undefined || publishDate !== undefined || exposure !== undefined ||
-      registrations !== undefined || profit !== undefined || order !== undefined
+    const isUpdatingCRUDFields = items !== undefined || videoUrl !== undefined ||
+      materialId !== undefined || notes !== undefined || publishDate !== undefined ||
+      exposure !== undefined || registrations !== undefined || profit !== undefined ||
+      order !== undefined
 
     const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
       claimCreator === true || removeCreator === true
@@ -120,6 +122,9 @@ export async function PATCH(
 
     if (items !== undefined) {
       updateData.items = JSON.stringify(items)
+    }
+    if (videoUrl !== undefined) {
+      updateData.videoUrl = videoUrl
     }
     if (materialId !== undefined) {
       updateData.materialId = materialId

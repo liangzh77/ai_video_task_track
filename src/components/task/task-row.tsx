@@ -2,6 +2,7 @@
 
 import { useState, useEffect, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
+import { VideoItem } from '@/components/task/video-item'
 import { EditableField } from '@/components/task/editable-field'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -55,7 +56,7 @@ export function TaskRow({
     }
   }, [isSaving])
 
-  const handleFieldSave = async (field: string, value: string | number | boolean) => {
+  const handleFieldSave = async (field: string, value: string | number | boolean | null) => {
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
@@ -257,7 +258,7 @@ export function TaskRow({
         </div>
       )}
       <div className="flex flex-col gap-2">
-        {/* Items (Images + Texts) */}
+        {/* Items (Images + Texts) + Video */}
         <SortableItems
           items={items}
           onUpdate={updateItems}
@@ -265,6 +266,15 @@ export function TaskRow({
           selectedImageUrl={selectedImageUrl}
           disabled={!canEdit}
           isSaving={isSaving}
+          endSlot={
+            <VideoItem
+              videoUrl={task.videoUrl}
+              onUpdate={async (videoUrl) => {
+                await handleFieldSave('videoUrl', videoUrl)
+              }}
+              disabled={!canEdit}
+            />
+          }
         />
 
         {/* Task Info - single row */}
