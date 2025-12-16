@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, DragEvent } from 'react'
+import { useState, useRef, useEffect, DragEvent } from 'react'
 
 interface VideoItemProps {
   videoUrl: string | null
@@ -15,8 +15,40 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
+  const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const previewVideoRef = useRef<HTMLVideoElement>(null)
+
+  // 获取签名 URL
+  useEffect(() => {
+    if (!videoUrl) {
+      setSignedUrl(null)
+      return
+    }
+
+    const fetchSignedUrl = async () => {
+      try {
+        const response = await fetch('/api/cos/sign-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: videoUrl }),
+        })
+
+        if (response.ok) {
+          const { signedUrl: url } = await response.json()
+          setSignedUrl(url)
+        }
+      } catch (error) {
+        console.error('获取签名 URL 失败:', error)
+      }
+    }
+
+    fetchSignedUrl()
+
+    // 每 5 分钟刷新一次签名 URL（签名有效期 10 分钟）
+    const interval = setInterval(fetchSignedUrl, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [videoUrl])
 
   // 上传视频到 COS
   const uploadVideo = async (file: File) => {
@@ -117,14 +149,14 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
   }
 
   const handleDownload = async () => {
-    if (!videoUrl) return
+    if (!signedUrl) return
     try {
-      const response = await fetch(videoUrl)
+      const response = await fetch(signedUrl)
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = videoUrl.split('/').pop() || 'video.mp4'
+      link.download = videoUrl?.split('/').pop() || 'video.mp4'
       link.click()
       URL.revokeObjectURL(url)
     } catch (error) {
@@ -224,13 +256,19 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
         onMouseLeave={handleMouseLeave}
       >
         {/* 视频缩略图 */}
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          className="w-full h-full object-cover"
-          muted
-          preload="metadata"
-        />
+        {signedUrl ? (
+          <video
+            ref={videoRef}
+            src={signedUrl}
+            className="w-full h-full object-cover"
+            muted
+            preload="metadata"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <span className="text-xs text-gray-400">加载中...</span>
+          </div>
+        )}
 
         {/* 播放图标 */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -292,7 +330,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
       </div>
 
       {/* 视频预览弹窗 */}
-      {showPreview && (
+      {showPreview && signedUrl && (
         <div
           className="fixed z-50 pointer-events-none"
           style={{
@@ -303,7 +341,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
           <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[500px]">
             <video
               ref={previewVideoRef}
-              src={videoUrl}
+              src={signedUrl}
               className="max-w-full max-h-[60vh] object-contain rounded"
               muted
               loop
