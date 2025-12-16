@@ -10,11 +10,21 @@ const COS_CONFIG = {
   Bucket: process.env.TENCENT_COS_BUCKET || 'xianban-feeds-1310472273',
 }
 
-// 生成 COS 签名（包含 Content-Type header）
+// URL 编码（符合 COS 要求）
+function camSafeUrlEncode(str: string): string {
+  return encodeURIComponent(str)
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A')
+}
+
+// 生成 COS 签名
 function generateSignature(
   method: string,
   key: string,
-  contentType: string,
+  headers: Record<string, string> = {},
   expires: number = 600
 ): string {
   const now = Math.floor(Date.now() / 1000)
@@ -27,12 +37,25 @@ function generateSignature(
     .update(keyTime)
     .digest('hex')
 
-  // 2. 准备 headers（需要签名的 header）
-  const headerList = 'content-type'
-  const httpHeaders = `content-type=${encodeURIComponent(contentType).toLowerCase()}`
+  // 2. 整理 headers（转为小写 key）
+  const lowerHeaders: Record<string, string> = {}
+  for (const k of Object.keys(headers)) {
+    lowerHeaders[k.toLowerCase()] = headers[k]
+  }
+  const headerKeys = Object.keys(lowerHeaders).sort()
+  const headerList = headerKeys.join(';')
+  const httpHeaders = headerKeys
+    .map(k => `${k}=${camSafeUrlEncode(lowerHeaders[k])}`)
+    .join('&')
 
   // 3. 生成 HttpString
-  const httpString = `${method.toLowerCase()}\n/${key}\n\n${httpHeaders}\n`
+  const httpString = [
+    method.toLowerCase(),
+    '/' + key,
+    '',  // url params
+    httpHeaders,
+    ''
+  ].join('\n')
 
   // 4. 生成 StringToSign
   const sha1HttpString = crypto.createHash('sha1').update(httpString).digest('hex')
@@ -74,8 +97,10 @@ export async function POST(request: Request) {
     const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
     const key = `videos/${date}/${uniqueId}.${ext}`
 
-    // 生成签名（包含 Content-Type）
-    const authorization = generateSignature('PUT', key, contentType)
+    // 生成签名（包含 Content-Type header）
+    const authorization = generateSignature('PUT', key, {
+      'Content-Type': contentType,
+    })
 
     // 生成上传 URL
     const uploadUrl = `https://${COS_CONFIG.Bucket}.cos.${COS_CONFIG.Region}.myqcloud.com/${key}`
