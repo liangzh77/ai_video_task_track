@@ -48,11 +48,13 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
         throw new Error('获取上传凭证失败')
       }
 
-      const { uploadUrl, fileUrl } = await presignRes.json()
+      const { uploadUrl, fileUrl, contentType } = await presignRes.json()
 
-      // 2. 上传到 COS（使用预签名 URL，不需要额外 header）
+      // 2. 上传到 COS（使用预签名 URL）
       const xhr = new XMLHttpRequest()
       xhr.open('PUT', uploadUrl)
+      // 设置 Content-Type 以便 COS 正确存储文件类型
+      xhr.setRequestHeader('Content-Type', contentType || file.type)
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
