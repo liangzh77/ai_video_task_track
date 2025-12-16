@@ -10,10 +10,11 @@ const COS_CONFIG = {
   Bucket: process.env.TENCENT_COS_BUCKET || 'xianban-feeds-1310472273',
 }
 
-// 生成预签名 URL（签名在 URL 参数中）
+// 生成预签名 URL（包含 Content-Type 在签名中）
 function generatePresignedUrl(
   method: string,
   key: string,
+  contentType: string,
   expires: number = 600
 ): string {
   const now = Math.floor(Date.now() / 1000)
@@ -26,22 +27,27 @@ function generatePresignedUrl(
     .update(keyTime)
     .digest('hex')
 
-  // 2. 生成 HttpString（不包含任何 header）
-  const httpString = `${method.toLowerCase()}\n/${key}\n\n\n`
+  // 2. 构建 HttpHeaders（Content-Type 需要 URL 编码）
+  const headerList = 'content-type'
+  const encodedContentType = encodeURIComponent(contentType)
+  const httpHeaders = `content-type=${encodedContentType}`
 
-  // 3. 生成 StringToSign
+  // 3. 生成 HttpString
+  const httpString = `${method.toLowerCase()}\n/${key}\n\n${httpHeaders}\n`
+
+  // 4. 生成 StringToSign
   const sha1HttpString = crypto.createHash('sha1').update(httpString).digest('hex')
   const stringToSign = `sha1\n${keyTime}\n${sha1HttpString}\n`
 
-  // 4. 生成 Signature
+  // 5. 生成 Signature
   const signature = crypto
     .createHmac('sha1', signKey)
     .update(stringToSign)
     .digest('hex')
 
-  // 5. 构建预签名 URL
+  // 6. 构建预签名 URL
   const baseUrl = `https://${COS_CONFIG.Bucket}.cos.${COS_CONFIG.Region}.myqcloud.com/${key}`
-  const queryString = `q-sign-algorithm=sha1&q-ak=${COS_CONFIG.SecretId}&q-sign-time=${keyTime}&q-key-time=${keyTime}&q-header-list=&q-url-param-list=&q-signature=${signature}`
+  const queryString = `q-sign-algorithm=sha1&q-ak=${COS_CONFIG.SecretId}&q-sign-time=${keyTime}&q-key-time=${keyTime}&q-header-list=${headerList}&q-url-param-list=&q-signature=${signature}`
 
   return `${baseUrl}?${queryString}`
 }
@@ -72,8 +78,8 @@ export async function POST(request: Request) {
     const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
     const key = `videos/${date}/${uniqueId}.${ext}`
 
-    // 生成预签名 URL
-    const uploadUrl = generatePresignedUrl('PUT', key)
+    // 生成预签名 URL（包含 Content-Type）
+    const uploadUrl = generatePresignedUrl('PUT', key, contentType)
 
     // 文件访问 URL（不带签名参数）
     const fileUrl = `https://${COS_CONFIG.Bucket}.cos.${COS_CONFIG.Region}.myqcloud.com/${key}`
