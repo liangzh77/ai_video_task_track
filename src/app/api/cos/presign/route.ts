@@ -10,21 +10,10 @@ const COS_CONFIG = {
   Bucket: process.env.TENCENT_COS_BUCKET || 'xianban-feeds-1310472273',
 }
 
-// URL 编码（符合 COS 要求）
-function camSafeUrlEncode(str: string): string {
-  return encodeURIComponent(str)
-    .replace(/!/g, '%21')
-    .replace(/'/g, '%27')
-    .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29')
-    .replace(/\*/g, '%2A')
-}
-
-// 生成 COS 签名
-function generateSignature(
+// 生成预签名 URL（签名在 URL 参数中）
+function generatePresignedUrl(
   method: string,
   key: string,
-  headers: Record<string, string> = {},
   expires: number = 600
 ): string {
   const now = Math.floor(Date.now() / 1000)
@@ -37,38 +26,24 @@ function generateSignature(
     .update(keyTime)
     .digest('hex')
 
-  // 2. 整理 headers（转为小写 key）
-  const lowerHeaders: Record<string, string> = {}
-  for (const k of Object.keys(headers)) {
-    lowerHeaders[k.toLowerCase()] = headers[k]
-  }
-  const headerKeys = Object.keys(lowerHeaders).sort()
-  const headerList = headerKeys.join(';')
-  const httpHeaders = headerKeys
-    .map(k => `${k}=${camSafeUrlEncode(lowerHeaders[k])}`)
-    .join('&')
+  // 2. 生成 HttpString（不包含任何 header）
+  const httpString = `${method.toLowerCase()}\n/${key}\n\n\n`
 
-  // 3. 生成 HttpString
-  const httpString = [
-    method.toLowerCase(),
-    '/' + key,
-    '',  // url params
-    httpHeaders,
-    ''
-  ].join('\n')
-
-  // 4. 生成 StringToSign
+  // 3. 生成 StringToSign
   const sha1HttpString = crypto.createHash('sha1').update(httpString).digest('hex')
   const stringToSign = `sha1\n${keyTime}\n${sha1HttpString}\n`
 
-  // 5. 生成 Signature
+  // 4. 生成 Signature
   const signature = crypto
     .createHmac('sha1', signKey)
     .update(stringToSign)
     .digest('hex')
 
-  // 6. 生成最终签名字符串
-  return `q-sign-algorithm=sha1&q-ak=${COS_CONFIG.SecretId}&q-sign-time=${keyTime}&q-key-time=${keyTime}&q-header-list=${headerList}&q-url-param-list=&q-signature=${signature}`
+  // 5. 构建预签名 URL
+  const baseUrl = `https://${COS_CONFIG.Bucket}.cos.${COS_CONFIG.Region}.myqcloud.com/${key}`
+  const queryString = `q-sign-algorithm=sha1&q-ak=${COS_CONFIG.SecretId}&q-sign-time=${keyTime}&q-key-time=${keyTime}&q-header-list=&q-url-param-list=&q-signature=${signature}`
+
+  return `${baseUrl}?${queryString}`
 }
 
 export async function POST(request: Request) {
@@ -97,17 +72,15 @@ export async function POST(request: Request) {
     const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
     const key = `videos/${date}/${uniqueId}.${ext}`
 
-    // 生成签名（包含 Content-Type header）
-    const authorization = generateSignature('PUT', key, {
-      'Content-Type': contentType,
-    })
+    // 生成预签名 URL
+    const uploadUrl = generatePresignedUrl('PUT', key)
 
-    // 生成上传 URL
-    const uploadUrl = `https://${COS_CONFIG.Bucket}.cos.${COS_CONFIG.Region}.myqcloud.com/${key}`
+    // 文件访问 URL（不带签名参数）
+    const fileUrl = `https://${COS_CONFIG.Bucket}.cos.${COS_CONFIG.Region}.myqcloud.com/${key}`
 
     return NextResponse.json({
       uploadUrl,
-      authorization,
+      fileUrl,
       key,
       contentType,
     })

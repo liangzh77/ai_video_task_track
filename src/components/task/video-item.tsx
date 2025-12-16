@@ -48,13 +48,11 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
         throw new Error('获取上传凭证失败')
       }
 
-      const { uploadUrl, authorization } = await presignRes.json()
+      const { uploadUrl, fileUrl } = await presignRes.json()
 
-      // 2. 上传到 COS
+      // 2. 上传到 COS（使用预签名 URL，不需要额外 header）
       const xhr = new XMLHttpRequest()
       xhr.open('PUT', uploadUrl)
-      xhr.setRequestHeader('Authorization', authorization)
-      xhr.setRequestHeader('Content-Type', file.type)
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
@@ -75,8 +73,6 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
       })
 
       // 3. 保存视频 URL 到任务
-      // uploadUrl 去掉签名参数就是文件的访问 URL
-      const fileUrl = uploadUrl.split('?')[0]
       await onUpdate(fileUrl)
     } catch (error) {
       console.error('上传视频失败:', error)
