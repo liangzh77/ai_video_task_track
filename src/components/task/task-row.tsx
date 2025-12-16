@@ -270,6 +270,16 @@ export function TaskRow({
         {/* Task Info - single row */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <div>
+            <span className="text-gray-500">素材ID：</span>
+            <EditableField
+              value={task.materialId}
+              onSave={(value) => handleFieldSave('materialId', value)}
+              disabled={!canEdit}
+              placeholder="-"
+            />
+          </div>
+
+          <div>
             <span className="text-gray-500">备注：</span>
             <EditableField
               value={task.notes}

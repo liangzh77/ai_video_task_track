@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const {
       templateId,
       items = [],
+      materialId = '',
       notes = '',
       publishDate,
       exposure = 0,
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
         data: {
           templateId,
           items: JSON.stringify(items),
+          materialId,
           notes,
           publishDate: publishDate ? new Date(publishDate) : null,
           exposure,

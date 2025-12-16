@@ -24,6 +24,7 @@ export interface Task {
   id: string
   templateId: string
   items: ContentItem[]
+  materialId: string
   notes: string
   isApproved: boolean
   creator: Pick<User, 'id' | 'username'> | null
@@ -54,6 +55,7 @@ export interface UpdateTemplateRequest {
 export interface CreateTaskRequest {
   templateId: string
   items?: ContentItem[]
+  materialId?: string
   notes?: string
   publishDate?: string
   exposure?: number
@@ -63,6 +65,7 @@ export interface CreateTaskRequest {
 
 export interface UpdateTaskRequest {
   items?: ContentItem[]
+  materialId?: string
   notes?: string
   isApproved?: boolean
   claimCreator?: boolean

@@ -46,6 +46,7 @@ model Task {
   id            String    @id @default(cuid())
   templateId    String
   items         Json      @default("[]") // Array of { type: 'image' | 'text', content: string }
+  materialId    String    @default("")
   notes         String    @default("")
   isApproved    Boolean   @default(false)
   creatorId     String?

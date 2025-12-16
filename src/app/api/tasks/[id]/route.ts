@@ -55,6 +55,7 @@ export async function PATCH(
 
     const {
       items,
+      materialId,
       notes,
       isApproved,
       claimCreator,
@@ -80,8 +81,8 @@ export async function PATCH(
     const canApprove = session.user.canApprove || isAdmin
 
     // Check permissions based on what's being updated
-    const isUpdatingCRUDFields = items !== undefined || notes !== undefined ||
-      publishDate !== undefined || exposure !== undefined ||
+    const isUpdatingCRUDFields = items !== undefined || materialId !== undefined ||
+      notes !== undefined || publishDate !== undefined || exposure !== undefined ||
       registrations !== undefined || profit !== undefined || order !== undefined
 
     const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
@@ -119,6 +120,9 @@ export async function PATCH(
 
     if (items !== undefined) {
       updateData.items = JSON.stringify(items)
+    }
+    if (materialId !== undefined) {
+      updateData.materialId = materialId
     }
     if (notes !== undefined) {
       updateData.notes = notes
