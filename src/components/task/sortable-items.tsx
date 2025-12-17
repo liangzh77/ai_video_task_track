@@ -54,6 +54,7 @@ function SortableItem({
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(item.content)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDraggingItem, setIsDraggingItem] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
   const [adjustedPreviewPos, setAdjustedPreviewPos] = useState({ x: 0, y: 0 })
@@ -182,10 +183,13 @@ function SortableItem({
   }, [item.type, item.content, loadCachedImage])
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDraggingItem) return
     setPreviewPosition({ x: e.clientX, y: e.clientY })
   }
 
   const handleMouseEnter = (e: React.MouseEvent) => {
+    // Don't show preview when dragging
+    if (isDraggingItem) return
     const x = e.clientX
     const y = e.clientY
     setPreviewPosition({ x, y })
@@ -221,6 +225,9 @@ function SortableItem({
   // Native drag handlers for internal reordering
   const handleNativeDragStart = (e: React.DragEvent) => {
     if (!draggable) return
+    // Hide preview immediately when drag starts
+    setShowPreview(false)
+    setIsDraggingItem(true)
     // Set the drag data for cross-task copying
     e.dataTransfer.setData('application/x-content-item', JSON.stringify({
       type: item.type,
@@ -234,6 +241,10 @@ function SortableItem({
     e.dataTransfer.setData('text/plain', item.content)
     e.dataTransfer.effectAllowed = 'copyMove'
     onNativeDragStart?.(index)
+  }
+
+  const handleNativeDragEnd = () => {
+    setIsDraggingItem(false)
   }
 
   const handleNativeDragOver = (e: React.DragEvent) => {
@@ -309,6 +320,7 @@ function SortableItem({
         {...(useNativeDrag ? {} : { ...attributes, ...listeners })}
         draggable={draggable}
         onDragStart={handleNativeDragStart}
+        onDragEnd={handleNativeDragEnd}
         onDragOver={handleNativeDragOver}
         onDragLeave={handleNativeDragLeave}
         onDrop={handleNativeDropOnItem}
@@ -436,7 +448,7 @@ function SortableItem({
       </div>
 
       {/* Image preview on hover */}
-      {showPreview && !isEditing && !showDeleteConfirm && cachedPreviewUrl && (() => {
+      {showPreview && !isDraggingItem && !isEditing && !showDeleteConfirm && cachedPreviewUrl && (() => {
         const pos = getAdjustedPosition(previewPosition.x, previewPosition.y)
         return (
           <div
@@ -481,6 +493,7 @@ function SortableItem({
       {...(isEditing || useNativeDrag ? {} : { ...attributes, ...listeners })}
       draggable={draggable && !isEditing}
       onDragStart={handleNativeDragStart}
+      onDragEnd={handleNativeDragEnd}
       onDragOver={handleNativeDragOver}
       onDragLeave={handleNativeDragLeave}
       onDrop={handleNativeDropOnItem}
@@ -603,7 +616,7 @@ function SortableItem({
     </div>
 
     {/* Text preview on hover */}
-    {showPreview && !isEditing && !showDeleteConfirm && (
+    {showPreview && !isDraggingItem && !isEditing && !showDeleteConfirm && (
       <div
         ref={previewRef}
         className="fixed z-50 pointer-events-none"
