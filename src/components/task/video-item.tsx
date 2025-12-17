@@ -252,12 +252,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     if (!videoUrl) return
     setPreviewPosition({ x: e.clientX, y: e.clientY })
     setShowPreview(true)
-    // 开始播放预览视频
-    setTimeout(() => {
-      previewVideoRef.current?.play().catch(() => {
-        // 忽略自动播放失败（浏览器策略限制）
-      })
-    }, 100)
+    // 不自动播放，让用户点击播放按钮以便有声音
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -439,7 +434,6 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
               ref={previewVideoRef}
               src={playableUrl}
               className="max-w-full max-h-[80vh] object-contain rounded"
-              muted
               loop
               playsInline
               controls
