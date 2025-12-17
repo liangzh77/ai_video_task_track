@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, DragEvent } from 'react'
+import { getCachedVideo, setCachedVideo, cleanExpiredCache } from '@/lib/video-cache'
 
 interface VideoItemProps {
   videoUrl: string | null
@@ -15,39 +16,113 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
-  const [signedUrl, setSignedUrl] = useState<string | null>(null)
+  const [playableUrl, setPlayableUrl] = useState<string | null>(null)
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const previewVideoRef = useRef<HTMLVideoElement>(null)
+  const blobUrlRef = useRef<string | null>(null)
 
-  // 获取签名 URL
+  // 清理 blob URL
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+      }
+    }
+  }, [])
+
+  // 启动时清理过期缓存
+  useEffect(() => {
+    cleanExpiredCache(7) // 清理 7 天前的缓存
+  }, [])
+
+  // 获取视频（优先从缓存，否则从网络）
   useEffect(() => {
     if (!videoUrl) {
-      setSignedUrl(null)
+      setPlayableUrl(null)
       return
     }
 
-    const fetchSignedUrl = async () => {
+    let cancelled = false
+
+    const loadVideo = async () => {
+      setIsLoadingVideo(true)
+
       try {
-        const response = await fetch('/api/cos/sign-url', {
+        // 1. 先检查 IndexedDB 缓存
+        const cachedBlob = await getCachedVideo(videoUrl)
+        if (cachedBlob && !cancelled) {
+          // 缓存命中，创建 blob URL
+          if (blobUrlRef.current) {
+            URL.revokeObjectURL(blobUrlRef.current)
+          }
+          const blobUrl = URL.createObjectURL(cachedBlob)
+          blobUrlRef.current = blobUrl
+          setPlayableUrl(blobUrl)
+          setIsLoadingVideo(false)
+          return
+        }
+
+        // 2. 缓存未命中，获取签名 URL
+        const signResponse = await fetch('/api/cos/sign-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: videoUrl }),
         })
 
-        if (response.ok) {
-          const { signedUrl: url } = await response.json()
-          setSignedUrl(url)
+        if (!signResponse.ok || cancelled) {
+          throw new Error('获取签名 URL 失败')
         }
+
+        const { signedUrl } = await signResponse.json()
+
+        // 3. 从签名 URL 下载视频
+        const videoResponse = await fetch(signedUrl)
+        if (!videoResponse.ok || cancelled) {
+          throw new Error('下载视频失败')
+        }
+
+        const blob = await videoResponse.blob()
+        if (cancelled) return
+
+        // 4. 存入缓存
+        await setCachedVideo(videoUrl, blob)
+
+        // 5. 创建 blob URL 并使用
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current)
+        }
+        const blobUrl = URL.createObjectURL(blob)
+        blobUrlRef.current = blobUrl
+        setPlayableUrl(blobUrl)
       } catch (error) {
-        console.error('获取签名 URL 失败:', error)
+        console.error('加载视频失败:', error)
+        // 失败时尝试直接使用签名 URL
+        try {
+          const signResponse = await fetch('/api/cos/sign-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: videoUrl }),
+          })
+          if (signResponse.ok && !cancelled) {
+            const { signedUrl } = await signResponse.json()
+            setPlayableUrl(signedUrl)
+          }
+        } catch {
+          // 忽略
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingVideo(false)
+        }
       }
     }
 
-    fetchSignedUrl()
+    loadVideo()
 
-    // 每 5 分钟刷新一次签名 URL（签名有效期 10 分钟）
-    const interval = setInterval(fetchSignedUrl, 5 * 60 * 1000)
-    return () => clearInterval(interval)
+    return () => {
+      cancelled = true
+    }
   }, [videoUrl])
 
   // 上传视频到 COS
@@ -149,16 +224,25 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
   }
 
   const handleDownload = async () => {
-    if (!signedUrl) return
+    if (!playableUrl) return
     try {
-      const response = await fetch(signedUrl)
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = videoUrl?.split('/').pop() || 'video.mp4'
-      link.click()
-      URL.revokeObjectURL(url)
+      // 如果是 blob URL，直接下载
+      if (playableUrl.startsWith('blob:')) {
+        const link = document.createElement('a')
+        link.href = playableUrl
+        link.download = videoUrl?.split('/').pop() || 'video.mp4'
+        link.click()
+      } else {
+        // 否则需要 fetch
+        const response = await fetch(playableUrl)
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = videoUrl?.split('/').pop() || 'video.mp4'
+        link.click()
+        URL.revokeObjectURL(url)
+      }
     } catch (error) {
       console.error('下载失败:', error)
     }
@@ -262,17 +346,21 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
         onMouseLeave={handleMouseLeave}
       >
         {/* 视频缩略图 */}
-        {signedUrl ? (
+        {isLoadingVideo ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <span className="text-xs text-gray-400">加载中...</span>
+          </div>
+        ) : playableUrl ? (
           <video
             ref={videoRef}
-            src={signedUrl}
+            src={playableUrl}
             className="w-full h-full object-cover"
             muted
             preload="metadata"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-xs text-gray-400">加载中...</span>
+            <span className="text-xs text-gray-400">加载失败</span>
           </div>
         )}
 
@@ -336,7 +424,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
       </div>
 
       {/* 视频预览弹窗 */}
-      {showPreview && signedUrl && (
+      {showPreview && playableUrl && (
         <div
           className="fixed z-50"
           style={{
@@ -347,7 +435,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
           <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[85vw] max-h-[85vh]">
             <video
               ref={previewVideoRef}
-              src={signedUrl}
+              src={playableUrl}
               className="max-w-full max-h-[80vh] object-contain rounded"
               loop
               playsInline
