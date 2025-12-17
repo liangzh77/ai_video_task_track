@@ -25,22 +25,30 @@ import type { ContentItem } from '@/types/api'
 
 interface SortableItemProps {
   id: string
+  index: number
   item: ContentItem
   onDelete: () => void
   onEdit?: (newContent: string) => void
   disabled?: boolean
   draggable?: boolean
   isSaving?: boolean
+  useNativeDrag?: boolean
+  onNativeDragStart?: (index: number) => void
+  onNativeDrop?: (targetIndex: number) => void
 }
 
 function SortableItem({
   id,
+  index,
   item,
   onDelete,
   onEdit,
   disabled,
   draggable = false,
   isSaving = false,
+  useNativeDrag = false,
+  onNativeDragStart,
+  onNativeDrop,
 }: SortableItemProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -190,6 +198,8 @@ function SortableItem({
     setShowPreview(false)
   }
 
+  // Only use dnd-kit when not using native drag
+  const sortableResult = useSortable({ id, disabled: disabled || useNativeDrag })
   const {
     attributes,
     listeners,
@@ -197,12 +207,58 @@ function SortableItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, disabled })
+  } = sortableResult
 
-  const style = {
+  const style = useNativeDrag ? {} : {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+  }
+
+  // Native drag state
+  const [isNativeDragOver, setIsNativeDragOver] = useState(false)
+
+  // Native drag handlers for internal reordering
+  const handleNativeDragStart = (e: React.DragEvent) => {
+    if (!draggable) return
+    // Set the drag data for cross-task copying
+    e.dataTransfer.setData('application/x-content-item', JSON.stringify({
+      type: item.type,
+      content: item.content,
+    }))
+    // Set the source index for internal reordering
+    e.dataTransfer.setData('application/x-item-index', String(index))
+    if (item.type === 'image') {
+      e.dataTransfer.setData('application/x-image-url', item.content)
+    }
+    e.dataTransfer.setData('text/plain', item.content)
+    e.dataTransfer.effectAllowed = 'copyMove'
+    onNativeDragStart?.(index)
+  }
+
+  const handleNativeDragOver = (e: React.DragEvent) => {
+    if (!useNativeDrag || disabled) return
+    // Only handle if this is an internal reorder (has item index)
+    if (e.dataTransfer.types.includes('application/x-item-index')) {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsNativeDragOver(true)
+    }
+  }
+
+  const handleNativeDragLeave = () => {
+    setIsNativeDragOver(false)
+  }
+
+  const handleNativeDropOnItem = (e: React.DragEvent) => {
+    if (!useNativeDrag || disabled) return
+    const sourceIndex = e.dataTransfer.getData('application/x-item-index')
+    if (sourceIndex !== '') {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsNativeDragOver(false)
+      onNativeDrop?.(index)
+    }
   }
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -238,55 +294,29 @@ function SortableItem({
     // Enter 键正常换行，不阻止
   }
 
-  const handleDragStart = (e: React.DragEvent) => {
-    if (!draggable) return
-    // 设置通用的内容项数据（包含 type 和 content）
-    e.dataTransfer.setData('application/x-content-item', JSON.stringify({
-      type: item.type,
-      content: item.content,
-    }))
-    // 保持图片的向后兼容
-    if (item.type === 'image') {
-      e.dataTransfer.setData('application/x-image-url', item.content)
-    }
-    e.dataTransfer.setData('text/plain', item.content)
-    e.dataTransfer.effectAllowed = 'copy'
-  }
-
   if (item.type === 'image') {
     return (
       <>
       <div
-        ref={setNodeRef}
+        ref={useNativeDrag ? undefined : setNodeRef}
         style={style}
         className={`
-          relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden flex
-          border-transparent
+          relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden
+          ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'}
+          ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
         `}
+        {...(useNativeDrag ? {} : { ...attributes, ...listeners })}
+        draggable={draggable}
+        onDragStart={handleNativeDragStart}
+        onDragOver={handleNativeDragOver}
+        onDragLeave={handleNativeDragLeave}
+        onDrop={handleNativeDropOnItem}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {/* 内部排序拖拽手柄 */}
-        {!disabled && (
-          <div
-            {...attributes}
-            {...listeners}
-            className="w-4 flex-shrink-0 flex items-center justify-center bg-gray-100 hover:bg-gray-200 cursor-grab active:cursor-grabbing"
-            title="拖动排序"
-          >
-            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-            </svg>
-          </div>
-        )}
-        {/* 图片区域 - 可拖拽到其他任务 */}
-        <div
-          className="h-full flex-1 relative"
-          draggable={draggable}
-          onDragStart={handleDragStart}
-        >
+        <div className="h-full relative">
           {isLoading && (
             <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
               <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,37 +470,25 @@ function SortableItem({
   return (
     <>
     <div
-      ref={setNodeRef}
+      ref={useNativeDrag ? undefined : setNodeRef}
       style={style}
       className={`
-        relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100 flex
-        ${disabled ? '' : 'border-gray-200 hover:border-gray-300'}
+        relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
+        ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : ''}
+        ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
         ${isSaving ? 'pointer-events-none' : ''}
       `}
+      {...(isEditing || useNativeDrag ? {} : { ...attributes, ...listeners })}
+      draggable={draggable && !isEditing}
+      onDragStart={handleNativeDragStart}
+      onDragOver={handleNativeDragOver}
+      onDragLeave={handleNativeDragLeave}
+      onDrop={handleNativeDropOnItem}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      {/* 内部排序拖拽手柄 */}
-      {!disabled && !isEditing && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="w-4 flex-shrink-0 flex items-center justify-center bg-gray-200 hover:bg-gray-300 cursor-grab active:cursor-grabbing"
-          title="拖动排序"
-        >
-          <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-          </svg>
-        </div>
-      )}
-      {/* 文案区域 - 可拖拽到其他任务 */}
-      <div
-        className="flex-1 h-full relative"
-        draggable={draggable && !isEditing}
-        onDragStart={handleDragStart}
-      >
-        {isEditing ? (
+      {isEditing ? (
           <div className="absolute inset-0 z-10 p-1">
             <textarea
               value={editValue}
@@ -582,7 +600,6 @@ function SortableItem({
           )}
         </>
       )}
-      </div>
     </div>
 
     {/* Text preview on hover */}
@@ -624,6 +641,8 @@ export function SortableItems({
   isSaving = false,
   endSlot,
 }: SortableItemsProps) {
+  // Track the dragging source index for native drag reordering
+  const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -647,6 +666,15 @@ export function SortableItems({
     }
   }
 
+  // Native drag reordering handler
+  const handleNativeDrop = (targetIndex: number) => {
+    if (dragSourceIndex !== null && dragSourceIndex !== targetIndex) {
+      const newItems = arrayMove(items, dragSourceIndex, targetIndex)
+      onUpdate(newItems)
+    }
+    setDragSourceIndex(null)
+  }
+
   const handleDelete = (index: number) => {
     const newItems = items.filter((_, i) => i !== index)
     onUpdate(newItems)
@@ -664,6 +692,51 @@ export function SortableItems({
 
   const itemIds = items.map((_, i) => `item-${i}`)
 
+  // When draggableImages is true, use native drag instead of dnd-kit
+  const useNativeDrag = draggableImages
+
+  const itemsContent = (
+    <div className="flex gap-2 flex-wrap items-center min-h-[100px]">
+      {items.map((item, index) => (
+        <SortableItem
+          key={`item-${index}`}
+          id={`item-${index}`}
+          index={index}
+          item={item}
+          onDelete={() => handleDelete(index)}
+          onEdit={item.type === 'text' ? (newContent) => handleEdit(index, newContent) : undefined}
+          disabled={disabled}
+          draggable={draggableImages}
+          isSaving={isSaving}
+          useNativeDrag={useNativeDrag}
+          onNativeDragStart={setDragSourceIndex}
+          onNativeDrop={handleNativeDrop}
+        />
+      ))}
+      {items.length === 0 && !disabled && (
+        <div className="flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
+          拖拽内容到此处
+        </div>
+      )}
+      {endSlot}
+      {!disabled && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleAddEmptyText}
+          className="h-[100px] px-4 whitespace-nowrap ml-auto"
+        >
+          添加文案
+        </Button>
+      )}
+    </div>
+  )
+
+  // When using native drag, don't wrap with dnd-kit context
+  if (useNativeDrag) {
+    return itemsContent
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -671,36 +744,7 @@ export function SortableItems({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={itemIds} strategy={horizontalListSortingStrategy}>
-        <div className="flex gap-2 flex-wrap items-center min-h-[100px]">
-          {items.map((item, index) => (
-            <SortableItem
-              key={`item-${index}`}
-              id={`item-${index}`}
-              item={item}
-              onDelete={() => handleDelete(index)}
-              onEdit={item.type === 'text' ? (newContent) => handleEdit(index, newContent) : undefined}
-              disabled={disabled}
-              draggable={draggableImages}
-              isSaving={isSaving}
-            />
-          ))}
-          {items.length === 0 && !disabled && (
-            <div className="flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
-              拖拽内容到此处
-            </div>
-          )}
-          {endSlot}
-          {!disabled && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleAddEmptyText}
-              className="h-[100px] px-4 whitespace-nowrap ml-auto"
-            >
-              添加文案
-            </Button>
-          )}
-        </div>
+        {itemsContent}
       </SortableContext>
     </DndContext>
   )
