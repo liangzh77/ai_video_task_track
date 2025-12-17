@@ -260,20 +260,33 @@ function SortableItem({
         ref={setNodeRef}
         style={style}
         className={`
-          relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden
+          relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden flex
           border-transparent
-          ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
         `}
-        {...attributes}
-        {...listeners}
-        draggable={draggable}
-        onDragStart={handleDragStart}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="h-full relative">
+        {/* 内部排序拖拽手柄 */}
+        {!disabled && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="w-4 flex-shrink-0 flex items-center justify-center bg-gray-100 hover:bg-gray-200 cursor-grab active:cursor-grabbing"
+            title="拖动排序"
+          >
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+          </div>
+        )}
+        {/* 图片区域 - 可拖拽到其他任务 */}
+        <div
+          className="h-full flex-1 relative"
+          draggable={draggable}
+          onDragStart={handleDragStart}
+        >
           {isLoading && (
             <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
               <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,40 +443,55 @@ function SortableItem({
       ref={setNodeRef}
       style={style}
       className={`
-        relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
-        ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
+        relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100 flex
+        ${disabled ? '' : 'border-gray-200 hover:border-gray-300'}
         ${isSaving ? 'pointer-events-none' : ''}
       `}
-      {...attributes}
-      {...listeners}
-      draggable={draggable}
-      onDragStart={handleDragStart}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      {isEditing ? (
-        <div className="absolute inset-0 z-10 p-1">
-          <textarea
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleSaveText}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="w-full h-full text-sm resize-none border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="输入文案..."
-          />
+      {/* 内部排序拖拽手柄 */}
+      {!disabled && !isEditing && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="w-4 flex-shrink-0 flex items-center justify-center bg-gray-200 hover:bg-gray-300 cursor-grab active:cursor-grabbing"
+          title="拖动排序"
+        >
+          <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
         </div>
-      ) : (
-        <>
-          <div
-            className={`h-full flex items-start justify-start p-2 overflow-hidden ${
-              disabled ? '' : 'cursor-pointer hover:bg-gray-200'
-            }`}
-            onClick={(e) => {
-              e.stopPropagation()
-              if (!disabled) setIsEditing(true)
-            }}
+      )}
+      {/* 文案区域 - 可拖拽到其他任务 */}
+      <div
+        className="flex-1 h-full relative"
+        draggable={draggable && !isEditing}
+        onDragStart={handleDragStart}
+      >
+        {isEditing ? (
+          <div className="absolute inset-0 z-10 p-1">
+            <textarea
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleSaveText}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              className="w-full h-full text-sm resize-none border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="输入文案..."
+            />
+          </div>
+        ) : (
+          <>
+            <div
+              className={`h-full flex items-start justify-start p-2 overflow-hidden ${
+                disabled ? '' : 'cursor-pointer hover:bg-gray-200'
+              }`}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (!disabled) setIsEditing(true)
+              }}
           >
             <span className="text-sm text-gray-700 text-left break-words line-clamp-4 whitespace-pre-wrap">
               {item.content}
@@ -554,6 +582,7 @@ function SortableItem({
           )}
         </>
       )}
+      </div>
     </div>
 
     {/* Text preview on hover */}
