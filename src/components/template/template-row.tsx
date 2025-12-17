@@ -5,6 +5,7 @@ import { SortableItems } from '@/components/task/sortable-items'
 import { VideoItem } from '@/components/task/video-item'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { convertToJpg } from '@/lib/image-utils'
 import type { Template, ContentItem } from '@/types/api'
 
 interface TemplateRowProps {
@@ -184,22 +185,25 @@ export function TemplateRow({
     await updateItems([...items, { type: 'image', content: imageUrl }])
   }
 
-  // 上传文件并添加到模板
+  // 上传文件并添加到模板（自动转换为 JPG）
   const uploadAndAddImage = async (file: File) => {
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
     if (!validTypes.includes(file.type)) {
       console.error('不支持的图片格式')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      console.error('图片大小不能超过 5MB')
+    if (file.size > 10 * 1024 * 1024) { // 转换前允许更大的文件
+      console.error('图片大小不能超过 10MB')
       return
     }
 
     setIsUploading(true)
     try {
+      // 转换为 JPG 格式
+      const jpgFile = await convertToJpg(file)
+
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', jpgFile)
 
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',

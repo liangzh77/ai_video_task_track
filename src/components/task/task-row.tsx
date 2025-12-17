@@ -6,6 +6,7 @@ import { VideoItem } from '@/components/task/video-item'
 import { EditableField } from '@/components/task/editable-field'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
+import { convertToJpg } from '@/lib/image-utils'
 import type { Task, ContentItem } from '@/types/api'
 
 interface TaskRowProps {
@@ -205,22 +206,25 @@ export function TaskRow({
     await updateItems([...items, { type: 'image', content: imageUrl }])
   }
 
-  // 上传文件并添加到任务
+  // 上传文件并添加到任务（自动转换为 JPG）
   const uploadAndAddImage = async (file: File) => {
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
     if (!validTypes.includes(file.type)) {
       console.error('不支持的图片格式')
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
-      console.error('图片大小不能超过 5MB')
+    if (file.size > 10 * 1024 * 1024) { // 转换前允许更大的文件
+      console.error('图片大小不能超过 10MB')
       return
     }
 
     setIsUploading(true)
     try {
+      // 转换为 JPG 格式
+      const jpgFile = await convertToJpg(file)
+
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', jpgFile)
 
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
