@@ -23,7 +23,8 @@ model User {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  createdTasks Task[] @relation("TaskCreator")
+  submittedTasks Task[] @relation("TaskSubmitter")
+  createdTasks   Task[] @relation("TaskCreator")
 
   @@map("users")
 }
@@ -50,6 +51,7 @@ model Task {
   videoUrl      String?   // 视频URL，存储在腾讯COS
   materialId    String    @default("")
   notes         String    @default("")
+  submitterId   String?   // 提交者ID
   isApproved    Boolean   @default(false)
   creatorId     String?
   publishDate   DateTime?
@@ -60,11 +62,13 @@ model Task {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  creator  User?    @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  template  Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  submitter User?    @relation("TaskSubmitter", fields: [submitterId], references: [id], onDelete: SetNull)
+  creator   User?    @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
 
   @@index([templateId])
   @@index([templateId, order])
+  @@index([submitterId])
   @@index([creatorId])
   @@map("tasks")
 }

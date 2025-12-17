@@ -187,9 +187,9 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
   const getPreviewPosition = () => {
     const viewportHeight = window.innerHeight
     const viewportWidth = window.innerWidth
-    // 视频预览高度为 60vh + padding，宽度最大 500px
-    const estimatedHeight = viewportHeight * 0.6 + 20
-    const estimatedWidth = Math.min(viewportWidth * 0.5, 520)
+    // 视频预览高度为 80vh + padding，宽度为 50% 视口
+    const estimatedHeight = viewportHeight * 0.8
+    const estimatedWidth = viewportWidth * 0.5
 
     let x = previewPosition.x + 20
     let y = previewPosition.y - 100
@@ -338,20 +338,20 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
       {/* 视频预览弹窗 */}
       {showPreview && signedUrl && (
         <div
-          className="fixed z-50 pointer-events-none"
+          className="fixed z-50"
           style={{
             left: previewPos.x,
             top: previewPos.y,
           }}
         >
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[500px]">
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[85vw] max-h-[85vh]">
             <video
               ref={previewVideoRef}
               src={signedUrl}
-              className="max-w-full max-h-[60vh] object-contain rounded"
-              muted
+              className="max-w-full max-h-[80vh] object-contain rounded"
               loop
               playsInline
+              controls
             />
           </div>
         </div>

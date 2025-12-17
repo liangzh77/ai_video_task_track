@@ -28,6 +28,7 @@ export interface Task {
   videoUrl: string | null
   materialId: string
   notes: string
+  submitter: Pick<User, 'id' | 'username'> | null
   isApproved: boolean
   creator: Pick<User, 'id' | 'username'> | null
   publishDate: string | null

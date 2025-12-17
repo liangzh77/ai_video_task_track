@@ -124,7 +124,52 @@ export function TaskRow({
     }
   }
 
+  const handleClaimSubmitter = async () => {
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claimSubmitter: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error('认领失败')
+      }
+
+      const updatedTask = await response.json()
+      if (onTaskUpdate) {
+        onTaskUpdate(task.id, updatedTask)
+      }
+    } catch (error) {
+      console.error('认领提交者失败:', error)
+    }
+  }
+
+  const handleRemoveSubmitter = async () => {
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ removeSubmitter: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error('移除提交者失败')
+      }
+
+      const updatedTask = await response.json()
+      if (onTaskUpdate) {
+        onTaskUpdate(task.id, updatedTask)
+      }
+    } catch (error) {
+      console.error('移除提交者失败:', error)
+    }
+  }
+
+  const isSubmitter = task.submitter?.id === currentUserId
   const isCreator = task.creator?.id === currentUserId
+  // 移除提交者：需要 canApprove 权限，或者是提交者本人且有 canEdit 权限
+  const canRemoveSubmitter = canApprove || (isSubmitter && canEdit)
   // 移除制作人：需要 canApprove 权限，或者是制作人本人且有 canEdit 权限
   const canRemoveCreator = canApprove || (isCreator && canEdit)
 
@@ -297,6 +342,38 @@ export function TaskRow({
               disabled={!canEdit}
               placeholder="-"
             />
+          </div>
+
+          <div className="flex items-center gap-1">
+            <span className="text-gray-500">提交者：</span>
+            {task.submitter ? (
+              <>
+                <span className="text-gray-900">{task.submitter.username}</span>
+                {isSubmitter && (
+                  <span className="text-xs text-blue-600">(我)</span>
+                )}
+                {canRemoveSubmitter && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveSubmitter}
+                    className="w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 ml-1"
+                    title="移除提交者"
+                  >
+                    ×
+                  </button>
+                )}
+              </>
+            ) : (canEdit || canApprove) && currentUserId ? (
+              <button
+                type="button"
+                onClick={handleClaimSubmitter}
+                className="text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                认领
+              </button>
+            ) : (
+              <span className="text-gray-400">-</span>
+            )}
           </div>
 
           <div className="flex items-center gap-1">

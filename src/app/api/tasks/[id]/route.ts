@@ -19,6 +19,12 @@ export async function GET(
       where: { id },
       include: {
         template: true,
+        submitter: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
         creator: {
           select: {
             id: true,
@@ -58,6 +64,8 @@ export async function PATCH(
       videoUrl,
       materialId,
       notes,
+      claimSubmitter,
+      removeSubmitter,
       isApproved,
       claimCreator,
       removeCreator,
@@ -88,6 +96,7 @@ export async function PATCH(
       order !== undefined
 
     const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
+      claimSubmitter === true || removeSubmitter === true ||
       claimCreator === true || removeCreator === true
 
     // If updating CRUD fields, need canCRUD permission
@@ -108,6 +117,14 @@ export async function PATCH(
     // Only users with canApprove can change approval status
     if (typeof isApproved === 'boolean' && !canApprove) {
       return NextResponse.json({ error: '无审批权限' }, { status: 403 })
+    }
+
+    // Only submitter or users with canApprove can remove submitter
+    if (removeSubmitter === true) {
+      const isSubmitter = existingTask.submitterId === session.user.id
+      if (!isSubmitter && !canApprove) {
+        return NextResponse.json({ error: '无权移除提交者' }, { status: 403 })
+      }
     }
 
     // Only creator or users with canApprove can remove creator
@@ -131,6 +148,12 @@ export async function PATCH(
     }
     if (notes !== undefined) {
       updateData.notes = notes
+    }
+    if (claimSubmitter === true) {
+      updateData.submitterId = session.user.id
+    }
+    if (removeSubmitter === true) {
+      updateData.submitterId = null
     }
     if (typeof isApproved === 'boolean') {
       updateData.isApproved = isApproved
@@ -161,6 +184,12 @@ export async function PATCH(
       where: { id },
       data: updateData,
       include: {
+        submitter: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
         creator: {
           select: {
             id: true,

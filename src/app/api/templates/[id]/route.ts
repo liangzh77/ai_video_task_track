@@ -21,6 +21,12 @@ export async function GET(
         tasks: {
           orderBy: { order: 'asc' },
           include: {
+            submitter: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
             creator: {
               select: {
                 id: true,
@@ -97,6 +103,12 @@ export async function PATCH(
         tasks: {
           orderBy: { order: 'asc' },
           include: {
+            submitter: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
             creator: {
               select: {
                 id: true,

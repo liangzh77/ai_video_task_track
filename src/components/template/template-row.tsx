@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, DragEvent } from 'react'
+import { useState, useEffect, useRef, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
 import { VideoItem } from '@/components/task/video-item'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import type { Template, ContentItem } from '@/types/api'
 
 interface TemplateRowProps {
@@ -28,6 +29,22 @@ export function TemplateRow({
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editName, setEditName] = useState(template.name)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  // 同步模板名称
+  useEffect(() => {
+    setEditName(template.name)
+  }, [template.name])
+
+  // 编辑名称时自动聚焦
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus()
+      nameInputRef.current.select()
+    }
+  }, [isEditingName])
 
   // 解析 items，添加错误处理
   let items: ContentItem[] = []
@@ -59,6 +76,52 @@ export function TemplateRow({
     } finally {
       setIsDeleting(false)
       setShowDeleteConfirm(false)
+    }
+  }
+
+  const handleSaveName = async () => {
+    const trimmedName = editName.trim()
+    if (!trimmedName) {
+      setEditName(template.name)
+      setIsEditingName(false)
+      return
+    }
+    if (trimmedName === template.name) {
+      setIsEditingName(false)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/templates/${template.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmedName }),
+      })
+
+      if (!response.ok) {
+        throw new Error('更新名称失败')
+      }
+
+      const updatedTemplate = await response.json()
+      if (typeof updatedTemplate.items === 'string') {
+        updatedTemplate.items = JSON.parse(updatedTemplate.items)
+      }
+      if (onTemplateUpdate) {
+        onTemplateUpdate(template.id, updatedTemplate)
+      }
+      setIsEditingName(false)
+    } catch (error) {
+      console.error('更新模板名称失败:', error)
+      setEditName(template.name)
+    }
+  }
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveName()
+    } else if (e.key === 'Escape') {
+      setEditName(template.name)
+      setIsEditingName(false)
     }
   }
 
@@ -207,9 +270,25 @@ export function TemplateRow({
       )}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-blue-900">
-            {template.name}
-          </h3>
+          {isEditingName ? (
+            <Input
+              ref={nameInputRef}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={handleSaveName}
+              onKeyDown={handleNameKeyDown}
+              className="h-8 w-48 text-lg font-semibold"
+            />
+          ) : (
+            <h3
+              className={`text-lg font-semibold text-blue-900 ${
+                canEdit ? 'cursor-pointer hover:bg-blue-100 px-2 py-1 rounded transition-colors' : ''
+              }`}
+              onClick={() => canEdit && setIsEditingName(true)}
+            >
+              {template.name}
+            </h3>
+          )}
 
           {/* Delete button */}
           {canEdit && onDelete && (
