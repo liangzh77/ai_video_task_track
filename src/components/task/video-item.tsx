@@ -252,7 +252,19 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     if (!videoUrl) return
     setPreviewPosition({ x: e.clientX, y: e.clientY })
     setShowPreview(true)
-    // 不自动播放，让用户点击播放按钮以便有声音
+    // 尝试有声自动播放，如果浏览器不允许则静音播放
+    setTimeout(() => {
+      const video = previewVideoRef.current
+      if (!video) return
+      video.muted = false
+      video.play().catch(() => {
+        // 有声播放失败，尝试静音播放
+        video.muted = true
+        video.play().catch(() => {
+          // 静音也失败，放弃自动播放
+        })
+      })
+    }, 100)
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
