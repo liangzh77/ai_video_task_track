@@ -55,6 +55,7 @@ export async function POST(request: Request) {
           items: JSON.stringify(items),
           materialId,
           notes,
+          submitterId: session.user.id, // 创建任务时自动设置提交者
           publishDate: publishDate ? new Date(publishDate) : null,
           exposure,
           registrations,
@@ -63,6 +64,12 @@ export async function POST(request: Request) {
           // creatorId 留空，用户可以通过"制作"按钮认领
         },
         include: {
+          submitter: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
           creator: {
             select: {
               id: true,
