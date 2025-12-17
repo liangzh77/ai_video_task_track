@@ -254,7 +254,9 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     setShowPreview(true)
     // 开始播放预览视频
     setTimeout(() => {
-      previewVideoRef.current?.play()
+      previewVideoRef.current?.play().catch(() => {
+        // 忽略自动播放失败（浏览器策略限制）
+      })
     }, 100)
   }
 
@@ -437,6 +439,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
               ref={previewVideoRef}
               src={playableUrl}
               className="max-w-full max-h-[80vh] object-contain rounded"
+              muted
               loop
               playsInline
               controls
