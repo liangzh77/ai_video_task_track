@@ -2,6 +2,7 @@
 
 import { useState, useEffect, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
+import { VideoItem } from '@/components/task/video-item'
 import { Button } from '@/components/ui/button'
 import type { Template, ContentItem } from '@/types/api'
 
@@ -86,6 +87,30 @@ export function TemplateRow({
       console.error('更新模板失败:', error)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const updateVideoUrl = async (videoUrl: string | null) => {
+    try {
+      const response = await fetch(`/api/templates/${template.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoUrl }),
+      })
+
+      if (!response.ok) {
+        throw new Error('更新视频失败')
+      }
+
+      const updatedTemplate = await response.json()
+      if (typeof updatedTemplate.items === 'string') {
+        updatedTemplate.items = JSON.parse(updatedTemplate.items)
+      }
+      if (onTemplateUpdate) {
+        onTemplateUpdate(template.id, updatedTemplate)
+      }
+    } catch (error) {
+      console.error('更新视频失败:', error)
     }
   }
 
@@ -232,6 +257,13 @@ export function TemplateRow({
           disabled={!canEdit}
           draggableImages={canEdit}
           isSaving={isSaving}
+          endSlot={
+            <VideoItem
+              videoUrl={template.videoUrl}
+              onUpdate={updateVideoUrl}
+              disabled={!canEdit}
+            />
+          }
         />
       </div>
     </div>

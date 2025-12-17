@@ -183,22 +183,28 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     previewVideoRef.current?.pause()
   }
 
-  // 计算预览位置
+  // 计算预览位置（参考图片预览逻辑）
   const getPreviewPosition = () => {
     const viewportHeight = window.innerHeight
     const viewportWidth = window.innerWidth
-    const previewHeight = Math.min(viewportHeight * 0.6, 400)
-    const previewWidth = Math.min(viewportWidth * 0.4, 500)
+    // 视频预览高度为 60vh + padding，宽度最大 500px
+    const estimatedHeight = viewportHeight * 0.6 + 20
+    const estimatedWidth = Math.min(viewportWidth * 0.5, 520)
 
     let x = previewPosition.x + 20
     let y = previewPosition.y - 100
 
-    if (y + previewHeight > viewportHeight - 20) {
-      y = viewportHeight - previewHeight - 20
+    // 确保下边界不超出视口
+    if (y + estimatedHeight > viewportHeight - 20) {
+      y = viewportHeight - estimatedHeight - 20
     }
-    if (y < 20) y = 20
-    if (x + previewWidth > viewportWidth - 20) {
-      x = previewPosition.x - previewWidth - 20
+    // 确保上边界不超出视口
+    if (y < 20) {
+      y = 20
+    }
+    // 确保右边界不超出视口
+    if (x + estimatedWidth > viewportWidth - 20) {
+      x = previewPosition.x - estimatedWidth - 20
     }
 
     return { x, y }

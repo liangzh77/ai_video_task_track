@@ -32,6 +32,7 @@ model Template {
   id        String   @id @default(cuid())
   name      String
   items     Json     @default("[]") // Array of { type: 'image' | 'text', content: string }
+  videoUrl  String?  // 视频URL，存储在腾讯COS
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

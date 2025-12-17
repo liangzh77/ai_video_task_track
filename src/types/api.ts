@@ -16,6 +16,7 @@ export interface Template {
   id: string
   name: string
   items: ContentItem[]
+  videoUrl: string | null
   order: number
   tasks: Task[]
 }
@@ -50,6 +51,7 @@ export interface CreateTemplateRequest {
 export interface UpdateTemplateRequest {
   name?: string
   items?: ContentItem[]
+  videoUrl?: string | null
   order?: number
 }
 
