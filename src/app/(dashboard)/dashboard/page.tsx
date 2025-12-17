@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import Image from 'next/image'
 import { SortableTemplates } from '@/components/template/sortable-templates'
 import { AddTemplateButton } from '@/components/template/add-template-button'
 import type { Template, Task } from '@/types/api'
@@ -12,7 +11,6 @@ export default function DashboardPage() {
   const [templates, setTemplates] = useState<Template[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -33,10 +31,6 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchTemplates()
   }, [fetchTemplates])
-
-  const handleImageClick = (url: string) => {
-    setPreviewImage(url === previewImage ? null : url)
-  }
 
   const handleAddTemplate = async (name: string) => {
     const response = await fetch('/api/templates', {
@@ -221,8 +215,6 @@ export default function DashboardPage() {
       ) : (
         <SortableTemplates
           templates={templates}
-          onImageClick={handleImageClick}
-          selectedImageUrl={previewImage}
           canEdit={canEdit}
           canApprove={session?.user?.canApprove}
           currentUserId={session?.user?.id}
@@ -235,31 +227,6 @@ export default function DashboardPage() {
           onTaskUpdate={handleTaskUpdate}
           onTasksReorder={handleTasksReorder}
         />
-      )}
-
-      {/* Click preview modal */}
-      {previewImage && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
-          <div className="relative max-w-[90vw] max-h-[90vh]">
-            <button
-              onClick={() => setPreviewImage(null)}
-              className="absolute -top-10 right-0 text-white hover:text-gray-300 p-2 z-10"
-              aria-label="关闭预览"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <Image
-              src={previewImage}
-              alt="预览图片"
-              width={1200}
-              height={900}
-              className="object-contain rounded-lg max-h-[85vh]"
-              sizes="90vw"
-            />
-          </div>
-        </div>
       )}
     </div>
   )

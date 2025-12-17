@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { getCachedImageUrl, setCachedImage, cleanExpiredImageCache } from '@/lib/image-cache'
 import type { ContentItem } from '@/types/api'
 
 interface SortableItemProps {
@@ -27,8 +28,6 @@ interface SortableItemProps {
   item: ContentItem
   onDelete: () => void
   onEdit?: (newContent: string) => void
-  onImageClick?: (url: string) => void
-  isSelected?: boolean
   disabled?: boolean
   draggable?: boolean
   isSaving?: boolean
@@ -39,8 +38,6 @@ function SortableItem({
   item,
   onDelete,
   onEdit,
-  onImageClick,
-  isSelected,
   disabled,
   draggable = false,
   isSaving = false,
@@ -53,7 +50,10 @@ function SortableItem({
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 })
   const [adjustedPreviewPos, setAdjustedPreviewPos] = useState({ x: 0, y: 0 })
   const [previewMaxWidth, setPreviewMaxWidth] = useState<number | undefined>(undefined)
+  const [cachedPreviewUrl, setCachedPreviewUrl] = useState<string | null>(null)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
+  const blobUrlRef = useRef<string | null>(null)
 
   // 计算图片预览位置（图片有固定 max-height，可以预估）
   const getAdjustedPosition = (x: number, y: number) => {
@@ -107,6 +107,71 @@ function SortableItem({
       setAdjustedPreviewPos({ x: adjustedX, y: adjustedY })
     }
   }, [showPreview, previewPosition, item.type])
+
+  // 清理 blob URL
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+      }
+    }
+  }, [])
+
+  // 启动时清理过期图片缓存
+  useEffect(() => {
+    cleanExpiredImageCache(7) // 清理 7 天前的缓存
+  }, [])
+
+  // 加载并缓存图片预览
+  const loadCachedImage = useCallback(async () => {
+    if (item.type !== 'image' || !item.content) return
+
+    setIsLoadingPreview(true)
+    try {
+      // 1. 先检查 IndexedDB 缓存
+      const cachedUrl = await getCachedImageUrl(item.content)
+      if (cachedUrl) {
+        // 缓存命中
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current)
+        }
+        blobUrlRef.current = cachedUrl
+        setCachedPreviewUrl(cachedUrl)
+        setIsLoadingPreview(false)
+        return
+      }
+
+      // 2. 缓存未命中，从网络加载
+      const response = await fetch(item.content)
+      if (!response.ok) throw new Error('加载图片失败')
+
+      const blob = await response.blob()
+
+      // 3. 存入缓存
+      await setCachedImage(item.content, blob)
+
+      // 4. 创建 blob URL 并使用
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+      }
+      const blobUrl = URL.createObjectURL(blob)
+      blobUrlRef.current = blobUrl
+      setCachedPreviewUrl(blobUrl)
+    } catch (error) {
+      console.error('加载图片预览失败:', error)
+      // 失败时直接使用原始 URL
+      setCachedPreviewUrl(item.content)
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }, [item.type, item.content])
+
+  // 当图片项挂载或内容变化时，预加载并缓存
+  useEffect(() => {
+    if (item.type === 'image') {
+      loadCachedImage()
+    }
+  }, [item.type, item.content, loadCachedImage])
 
   const handleMouseMove = (e: React.MouseEvent) => {
     setPreviewPosition({ x: e.clientX, y: e.clientY })
@@ -174,9 +239,17 @@ function SortableItem({
   }
 
   const handleDragStart = (e: React.DragEvent) => {
-    if (!draggable || item.type !== 'image') return
+    if (!draggable) return
+    // 设置通用的内容项数据（包含 type 和 content）
+    e.dataTransfer.setData('application/x-content-item', JSON.stringify({
+      type: item.type,
+      content: item.content,
+    }))
+    // 保持图片的向后兼容
+    if (item.type === 'image') {
+      e.dataTransfer.setData('application/x-image-url', item.content)
+    }
     e.dataTransfer.setData('text/plain', item.content)
-    e.dataTransfer.setData('application/x-image-url', item.content)
     e.dataTransfer.effectAllowed = 'copy'
   }
 
@@ -188,7 +261,7 @@ function SortableItem({
         style={style}
         className={`
           relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden
-          ${isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'}
+          border-transparent
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
         `}
@@ -200,11 +273,7 @@ function SortableItem({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <button
-          type="button"
-          onClick={() => onImageClick?.(item.content)}
-          className="h-full relative"
-        >
+        <div className="h-full relative">
           {isLoading && (
             <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
               <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +291,7 @@ function SortableItem({
             sizes="100px"
             draggable={false}
           />
-        </button>
+        </div>
 
         {/* Saving overlay with scanning effect */}
         {isSaving && (
@@ -324,7 +393,7 @@ function SortableItem({
       </div>
 
       {/* Image preview on hover */}
-      {showPreview && !isEditing && !showDeleteConfirm && (() => {
+      {showPreview && !isEditing && !showDeleteConfirm && cachedPreviewUrl && (() => {
         const pos = getAdjustedPosition(previewPosition.x, previewPosition.y)
         return (
           <div
@@ -335,11 +404,17 @@ function SortableItem({
             }}
           >
             <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-2 max-w-[85vw] max-h-[85vh]">
-              <img
-                src={item.content}
-                alt="预览"
-                className="max-w-full max-h-[80vh] object-contain"
-              />
+              {isLoadingPreview ? (
+                <div className="w-[200px] h-[200px] flex items-center justify-center bg-gray-100 rounded">
+                  <span className="text-sm text-gray-400">加载中...</span>
+                </div>
+              ) : (
+                <img
+                  src={cachedPreviewUrl}
+                  alt="预览"
+                  className="max-w-full max-h-[80vh] object-contain"
+                />
+              )}
             </div>
           </div>
         )
@@ -361,6 +436,8 @@ function SortableItem({
       `}
       {...attributes}
       {...listeners}
+      draggable={draggable}
+      onDragStart={handleDragStart}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -504,8 +581,6 @@ function SortableItem({
 interface SortableItemsProps {
   items: ContentItem[]
   onUpdate: (items: ContentItem[]) => void
-  onImageClick?: (url: string) => void
-  selectedImageUrl?: string | null
   disabled?: boolean
   draggableImages?: boolean
   isSaving?: boolean
@@ -515,8 +590,6 @@ interface SortableItemsProps {
 export function SortableItems({
   items,
   onUpdate,
-  onImageClick,
-  selectedImageUrl,
   disabled = false,
   draggableImages = false,
   isSaving = false,
@@ -577,10 +650,8 @@ export function SortableItems({
               item={item}
               onDelete={() => handleDelete(index)}
               onEdit={item.type === 'text' ? (newContent) => handleEdit(index, newContent) : undefined}
-              onImageClick={onImageClick}
-              isSelected={item.type === 'image' && selectedImageUrl === item.content}
               disabled={disabled}
-              draggable={draggableImages && item.type === 'image'}
+              draggable={draggableImages}
               isSaving={isSaving}
             />
           ))}

@@ -22,8 +22,6 @@ import type { Task } from '@/types/api'
 
 interface SortableTaskItemProps {
   task: Task
-  onImageClick: (url: string) => void
-  selectedImageUrl: string | null
   canEdit: boolean
   canApprove?: boolean
   currentUserId?: string
@@ -35,8 +33,6 @@ interface SortableTaskItemProps {
 
 function SortableTaskItem({
   task,
-  onImageClick,
-  selectedImageUrl,
   canEdit,
   canApprove,
   currentUserId,
@@ -88,8 +84,6 @@ function SortableTaskItem({
       <div className="flex-1">
         <TaskRow
           task={task}
-          onImageClick={onImageClick}
-          selectedImageUrl={selectedImageUrl}
           canEdit={canEdit}
           canApprove={canApprove}
           currentUserId={currentUserId}
@@ -104,8 +98,6 @@ function SortableTaskItem({
 
 interface SortableTasksProps {
   tasks: Task[]
-  onImageClick: (url: string) => void
-  selectedImageUrl: string | null
   canEdit: boolean
   canApprove?: boolean
   currentUserId?: string
@@ -117,8 +109,6 @@ interface SortableTasksProps {
 
 export function SortableTasks({
   tasks,
-  onImageClick,
-  selectedImageUrl,
   canEdit,
   canApprove,
   currentUserId,
@@ -163,8 +153,6 @@ export function SortableTasks({
             <SortableTaskItem
               key={task.id}
               task={task}
-              onImageClick={onImageClick}
-              selectedImageUrl={selectedImageUrl}
               canEdit={canEdit}
               canApprove={canApprove}
               currentUserId={currentUserId}

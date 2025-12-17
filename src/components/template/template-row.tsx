@@ -10,8 +10,6 @@ import type { Template, ContentItem } from '@/types/api'
 
 interface TemplateRowProps {
   template: Template
-  onImageClick: (url: string) => void
-  selectedImageUrl: string | null
   canEdit?: boolean
   onDelete?: (templateId: string) => Promise<void>
   onTemplateUpdate?: (templateId: string, updates: Partial<Template>) => void
@@ -19,8 +17,6 @@ interface TemplateRowProps {
 
 export function TemplateRow({
   template,
-  onImageClick,
-  selectedImageUrl,
   canEdit = false,
   onDelete,
   onTemplateUpdate,
@@ -236,13 +232,32 @@ export function TemplateRow({
     setIsDragOver(false)
   }
 
+  // 添加内容项到模板（图片或文案）
+  const addContentItemToTemplate = async (contentItem: ContentItem) => {
+    // 检查是否已存在相同内容
+    if (items.some(item => item.type === contentItem.type && item.content === contentItem.content)) return
+    await updateItems([...items, contentItem])
+  }
+
   const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
     if (!canEdit) return
     e.preventDefault()
     e.stopPropagation()
     setIsDragOver(false)
 
-    // 优先检查是否有内部图片 URL
+    // 优先检查是否有内容项（图片或文案）
+    const contentItemData = e.dataTransfer.getData('application/x-content-item')
+    if (contentItemData) {
+      try {
+        const contentItem = JSON.parse(contentItemData) as ContentItem
+        await addContentItemToTemplate(contentItem)
+        return
+      } catch {
+        // 解析失败，继续检查其他数据类型
+      }
+    }
+
+    // 兼容：检查是否有内部图片 URL
     const imageUrl = e.dataTransfer.getData('application/x-image-url')
     if (imageUrl) {
       await addImageToTemplate(imageUrl)
@@ -335,8 +350,6 @@ export function TemplateRow({
         <SortableItems
           items={items}
           onUpdate={updateItems}
-          onImageClick={onImageClick}
-          selectedImageUrl={selectedImageUrl}
           disabled={!canEdit}
           draggableImages={canEdit}
           isSaving={isSaving}

@@ -51,8 +51,6 @@ function saveCollapsedTemplates(collapsed: Set<string>) {
 
 interface SortableTemplateItemProps {
   template: Template
-  onImageClick: (url: string) => void
-  selectedImageUrl: string | null
   canEdit: boolean
   canApprove?: boolean
   currentUserId?: string
@@ -70,8 +68,6 @@ interface SortableTemplateItemProps {
 
 function SortableTemplateItem({
   template,
-  onImageClick,
-  selectedImageUrl,
   canEdit,
   canApprove,
   currentUserId,
@@ -159,8 +155,6 @@ function SortableTemplateItem({
         <div className="flex-1">
           <TemplateRow
             template={template}
-            onImageClick={onImageClick}
-            selectedImageUrl={selectedImageUrl}
             canEdit={canEdit}
             onDelete={onDeleteTemplate}
             onTemplateUpdate={onTemplateUpdate}
@@ -174,8 +168,6 @@ function SortableTemplateItem({
             <div className="ml-6">
               <SortableTasks
                 tasks={template.tasks}
-                onImageClick={onImageClick}
-                selectedImageUrl={selectedImageUrl}
                 canEdit={canEdit}
                 canApprove={canApprove}
                 currentUserId={currentUserId}
@@ -200,8 +192,6 @@ function SortableTemplateItem({
 
 interface SortableTemplatesProps {
   templates: Template[]
-  onImageClick: (url: string) => void
-  selectedImageUrl: string | null
   canEdit: boolean
   canApprove?: boolean
   currentUserId?: string
@@ -217,8 +207,6 @@ interface SortableTemplatesProps {
 
 export function SortableTemplates({
   templates,
-  onImageClick,
-  selectedImageUrl,
   canEdit,
   canApprove,
   currentUserId,
@@ -287,8 +275,6 @@ export function SortableTemplates({
             <SortableTemplateItem
               key={template.id}
               template={template}
-              onImageClick={onImageClick}
-              selectedImageUrl={selectedImageUrl}
               canEdit={canEdit}
               canApprove={canApprove}
               currentUserId={currentUserId}
