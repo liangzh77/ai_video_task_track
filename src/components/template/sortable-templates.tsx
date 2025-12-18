@@ -98,6 +98,7 @@ function SortableTemplateItem({
   }
 
   const taskCount = template.tasks?.length || 0
+  const videoCount = template.tasks?.filter(t => t.videoUrl)?.length || 0
 
   return (
     <div ref={setNodeRef} style={style} className="space-y-2">
@@ -123,9 +124,10 @@ function SortableTemplateItem({
             />
           </svg>
           {taskCount > 0 && (
-            <span className="ml-1 text-xs text-gray-400">
-              {taskCount}
-            </span>
+            <div className="ml-1 flex flex-col items-center text-xs leading-tight">
+              <span className="text-gray-400">{taskCount}</span>
+              <span className="text-green-500">{videoCount}</span>
+            </div>
           )}
         </button>
 
