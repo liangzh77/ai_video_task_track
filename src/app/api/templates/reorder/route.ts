@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-export async function PATCH(request: Request) {
+export async function POST(request: Request) {
   try {
     const session = await auth()
 
@@ -16,18 +16,18 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json()
-    const { orders } = body
+    const { templateIds } = body
 
-    if (!Array.isArray(orders)) {
+    if (!Array.isArray(templateIds)) {
       return NextResponse.json({ error: '无效的排序数据' }, { status: 400 })
     }
 
     // Update all template orders in a transaction
     await prisma.$transaction(
-      orders.map(({ id, order }: { id: string; order: number }) =>
+      templateIds.map((id: string, index: number) =>
         prisma.template.update({
           where: { id },
-          data: { order },
+          data: { order: index },
         })
       )
     )
