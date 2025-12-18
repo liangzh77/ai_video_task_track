@@ -54,21 +54,45 @@ model Task {
   submitterId   String?   // 提交者ID
   isApproved    Boolean   @default(false)
   creatorId     String?
-  publishDate   DateTime?
-  exposure      Int       @default(0)
-  registrations Int       @default(0)
-  profit        Float     @default(0)
   order         Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  template  Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  submitter User?    @relation("TaskSubmitter", fields: [submitterId], references: [id], onDelete: SetNull)
-  creator   User?    @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  template     Template      @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  submitter    User?         @relation("TaskSubmitter", fields: [submitterId], references: [id], onDelete: SetNull)
+  creator      User?         @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  dailyMetrics DailyMetrics[]
 
   @@index([templateId])
   @@index([templateId, order])
   @@index([submitterId])
   @@index([creatorId])
+  @@index([materialId])
   @@map("tasks")
+}
+
+// 每日数据指标
+model DailyMetrics {
+  id             String   @id @default(cuid())
+  taskId         String
+  date           DateTime @db.Date // 数据日期
+  cost           Float    @default(0) // 消耗
+  impressions    Int      @default(0) // 展示数
+  clicks         Int      @default(0) // 点击数
+  clickRate      Float    @default(0) // 点击率(%)
+  cpm            Float    @default(0) // 平均千次展现费用(元)
+  conversions    Int      @default(0) // 转化数
+  conversionCost Float    @default(0) // 转化成本
+  activations    Int      @default(0) // 激活数
+  dailyPayment   Float    @default(0) // 计费当日付费金额
+  materialScore  Float    @default(0) // 素材评估
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, date]) // 每个任务每天只有一条记录
+  @@index([taskId])
+  @@index([date])
+  @@map("daily_metrics")
 }

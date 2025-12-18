@@ -1,6 +1,52 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import type { MetricsSummary } from '@/types/api'
+
+// 计算指标汇总
+function calculateMetricsSummary(dailyMetrics: Array<{
+  cost: number
+  impressions: number
+  clickRate: number
+  cpm: number
+  conversions: number
+  activations: number
+  dailyPayment: number
+  materialScore: number
+}>): MetricsSummary {
+  if (dailyMetrics.length === 0) {
+    return {
+      totalCost: 0,
+      totalImpressions: 0,
+      avgClickRate: 0,
+      avgCpm: 0,
+      totalConversions: 0,
+      totalActivations: 0,
+      totalDailyPayment: 0,
+      avgMaterialScore: 0,
+    }
+  }
+
+  const totalCost = dailyMetrics.reduce((sum, m) => sum + m.cost, 0)
+  const totalImpressions = dailyMetrics.reduce((sum, m) => sum + m.impressions, 0)
+  const totalConversions = dailyMetrics.reduce((sum, m) => sum + m.conversions, 0)
+  const totalActivations = dailyMetrics.reduce((sum, m) => sum + m.activations, 0)
+  const totalDailyPayment = dailyMetrics.reduce((sum, m) => sum + m.dailyPayment, 0)
+  const avgClickRate = dailyMetrics.reduce((sum, m) => sum + m.clickRate, 0) / dailyMetrics.length
+  const avgCpm = dailyMetrics.reduce((sum, m) => sum + m.cpm, 0) / dailyMetrics.length
+  const avgMaterialScore = dailyMetrics.reduce((sum, m) => sum + m.materialScore, 0) / dailyMetrics.length
+
+  return {
+    totalCost,
+    totalImpressions,
+    avgClickRate,
+    avgCpm,
+    totalConversions,
+    totalActivations,
+    totalDailyPayment,
+    avgMaterialScore,
+  }
+}
 
 export async function GET() {
   try {
@@ -33,12 +79,24 @@ export async function GET() {
                 username: true,
               },
             },
+            dailyMetrics: {
+              orderBy: { date: 'desc' },
+            },
           },
         },
       },
     })
 
-    return NextResponse.json(templates)
+    // 为每个任务计算指标汇总
+    const templatesWithSummary = templates.map(template => ({
+      ...template,
+      tasks: template.tasks.map(task => ({
+        ...task,
+        metricsSummary: calculateMetricsSummary(task.dailyMetrics),
+      })),
+    }))
+
+    return NextResponse.json(templatesWithSummary)
   } catch (error) {
     console.error('获取模板列表失败:', error)
     return NextResponse.json({ error: '服务器错误' }, { status: 500 })

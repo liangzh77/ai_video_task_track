@@ -3,6 +3,7 @@
 import { useState, useEffect, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
 import { VideoItem } from '@/components/task/video-item'
+import { MetricsDisplay } from '@/components/task/metrics-display'
 import { EditableField } from '@/components/task/editable-field'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -447,47 +448,11 @@ export function TaskRow({
             )}
           </div>
 
-          <div>
-            <span className="text-gray-500">上架时间：</span>
-            <EditableField
-              value={task.publishDate ? new Date(task.publishDate).toISOString().split('T')[0] : ''}
-              type="date"
-              onSave={(value) => handleFieldSave('publishDate', value)}
-              disabled={!canEdit}
-              placeholder="-"
-            />
-          </div>
-
-          <div>
-            <span className="text-gray-500">曝光：</span>
-            <EditableField
-              value={task.exposure}
-              type="number"
-              onSave={(value) => handleFieldSave('exposure', value)}
-              disabled={!canEdit}
-            />
-          </div>
-
-          <div>
-            <span className="text-gray-500">注册：</span>
-            <EditableField
-              value={task.registrations}
-              type="number"
-              onSave={(value) => handleFieldSave('registrations', value)}
-              disabled={!canEdit}
-            />
-          </div>
-
-          <div>
-            <span className="text-gray-500">利润：</span>
-            <EditableField
-              value={task.profit}
-              type="number"
-              onSave={(value) => handleFieldSave('profit', value)}
-              disabled={!canEdit}
-              prefix="¥"
-            />
-          </div>
+          {/* 数据指标 */}
+          <MetricsDisplay
+            summary={task.metricsSummary}
+            dailyMetrics={task.dailyMetrics}
+          />
 
           {/* Delete button */}
           {canEdit && onDelete && (

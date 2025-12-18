@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, DragEvent } from 'react'
 import { useSession } from 'next-auth/react'
 import { SortableTemplates } from '@/components/template/sortable-templates'
 import { AddTemplateButton } from '@/components/template/add-template-button'
+import { CsvImportModal, CsvRowData } from '@/components/csv-import-modal'
 import type { Template, Task } from '@/types/api'
 
 export default function DashboardPage() {
@@ -11,6 +12,12 @@ export default function DashboardPage() {
   const [templates, setTemplates] = useState<Template[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // CSV 导入状态
+  const [isDragOverCsv, setIsDragOverCsv] = useState(false)
+  const [csvFile, setCsvFile] = useState<File | null>(null)
+  const [showCsvModal, setShowCsvModal] = useState(false)
+  const [importMessage, setImportMessage] = useState<string | null>(null)
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -167,6 +174,78 @@ export default function DashboardPage() {
     }
   }
 
+  // CSV 拖拽处理
+  const handleCsvDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    // 检查是否有 CSV 文件
+    const items = Array.from(e.dataTransfer.items)
+    const hasCsv = items.some(item =>
+      item.kind === 'file' &&
+      (item.type === 'text/csv' || item.type === 'application/vnd.ms-excel')
+    )
+    if (hasCsv) {
+      setIsDragOverCsv(true)
+    }
+  }
+
+  const handleCsvDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    // 检查是否真的离开了容器
+    const rect = e.currentTarget.getBoundingClientRect()
+    if (
+      e.clientX < rect.left ||
+      e.clientX > rect.right ||
+      e.clientY < rect.top ||
+      e.clientY > rect.bottom
+    ) {
+      setIsDragOverCsv(false)
+    }
+  }
+
+  const handleCsvDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragOverCsv(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    const csvFile = files.find(file =>
+      file.type === 'text/csv' ||
+      file.type === 'application/vnd.ms-excel' ||
+      file.name.endsWith('.csv')
+    )
+
+    if (csvFile) {
+      setCsvFile(csvFile)
+      setShowCsvModal(true)
+    }
+  }
+
+  const handleCsvImport = async (date: string, data: CsvRowData[]) => {
+    const response = await fetch('/api/metrics/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, data }),
+    })
+
+    if (!response.ok) {
+      const result = await response.json()
+      throw new Error(result.error || '导入失败')
+    }
+
+    const result = await response.json()
+    setImportMessage(result.message)
+
+    // 刷新数据
+    await fetchTemplates()
+
+    // 3秒后清除消息
+    setTimeout(() => setImportMessage(null), 3000)
+  }
+
+  const handleCloseCsvModal = () => {
+    setShowCsvModal(false)
+    setCsvFile(null)
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -186,7 +265,33 @@ export default function DashboardPage() {
   const canEdit = session?.user?.canCRUD || false
 
   return (
-    <div className="max-w-full mx-auto">
+    <div
+      className={`max-w-full mx-auto min-h-screen relative ${
+        isDragOverCsv ? 'bg-blue-50' : ''
+      }`}
+      onDragOver={handleCsvDragOver}
+      onDragLeave={handleCsvDragLeave}
+      onDrop={handleCsvDrop}
+    >
+      {/* CSV 拖拽提示 */}
+      {isDragOverCsv && (
+        <div className="fixed inset-0 bg-blue-500/20 flex items-center justify-center z-40 pointer-events-none">
+          <div className="bg-white rounded-lg shadow-xl p-8 text-center">
+            <svg className="w-16 h-16 mx-auto text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p className="text-lg font-semibold text-gray-700">释放以导入 CSV 数据</p>
+          </div>
+        </div>
+      )}
+
+      {/* 导入成功消息 */}
+      {importMessage && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          {importMessage}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900">任务跟踪</h2>
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -228,6 +333,14 @@ export default function DashboardPage() {
           onTasksReorder={handleTasksReorder}
         />
       )}
+
+      {/* CSV 导入模态框 */}
+      <CsvImportModal
+        isOpen={showCsvModal}
+        csvFile={csvFile}
+        onClose={handleCloseCsvModal}
+        onImport={handleCsvImport}
+      />
     </div>
   )
 }

@@ -21,10 +21,6 @@ export async function POST(request: Request) {
       items = [],
       materialId = '',
       notes = '',
-      publishDate,
-      exposure = 0,
-      registrations = 0,
-      profit = 0,
     } = body
 
     if (!templateId) {
@@ -56,10 +52,6 @@ export async function POST(request: Request) {
           materialId,
           notes,
           submitterId: session.user.id, // 创建任务时自动设置提交者
-          publishDate: publishDate ? new Date(publishDate) : null,
-          exposure,
-          registrations,
-          profit,
           order: (maxOrder._max.order ?? -1) + 1,
           // creatorId 留空，用户可以通过"制作"按钮认领
         },

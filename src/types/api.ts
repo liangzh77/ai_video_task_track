@@ -21,6 +21,34 @@ export interface Template {
   tasks: Task[]
 }
 
+export interface DailyMetrics {
+  id: string
+  taskId: string
+  date: string // ISO date string (YYYY-MM-DD)
+  cost: number // 消耗
+  impressions: number // 展示数
+  clicks: number // 点击数
+  clickRate: number // 点击率(%)
+  cpm: number // 平均千次展现费用(元)
+  conversions: number // 转化数
+  conversionCost: number // 转化成本
+  activations: number // 激活数
+  dailyPayment: number // 计费当日付费金额
+  materialScore: number // 素材评估
+}
+
+// 重要指标汇总（显示在界面上）
+export interface MetricsSummary {
+  totalCost: number // 消耗
+  totalImpressions: number // 展示数
+  avgClickRate: number // 点击率(%)
+  avgCpm: number // 平均千次展现费用(元)
+  totalConversions: number // 转化数
+  totalActivations: number // 激活数
+  totalDailyPayment: number // 计费当日付费金额
+  avgMaterialScore: number // 素材评估
+}
+
 export interface Task {
   id: string
   templateId: string
@@ -31,11 +59,9 @@ export interface Task {
   submitter: Pick<User, 'id' | 'username'> | null
   isApproved: boolean
   creator: Pick<User, 'id' | 'username'> | null
-  publishDate: string | null
-  exposure: number
-  registrations: number
-  profit: number
   order: number
+  dailyMetrics?: DailyMetrics[]
+  metricsSummary?: MetricsSummary
 }
 
 export interface ApiResponse<T> {
@@ -61,10 +87,6 @@ export interface CreateTaskRequest {
   items?: ContentItem[]
   materialId?: string
   notes?: string
-  publishDate?: string
-  exposure?: number
-  registrations?: number
-  profit?: number
 }
 
 export interface UpdateTaskRequest {
@@ -74,11 +96,24 @@ export interface UpdateTaskRequest {
   notes?: string
   isApproved?: boolean
   claimCreator?: boolean
-  publishDate?: string
-  exposure?: number
-  registrations?: number
-  profit?: number
   order?: number
+}
+
+export interface ImportCsvRequest {
+  date: string // ISO date string (YYYY-MM-DD)
+  data: Array<{
+    materialId: string
+    cost: number
+    impressions: number
+    clicks: number
+    clickRate: number
+    cpm: number
+    conversions: number
+    conversionCost: number
+    activations: number
+    dailyPayment: number
+    materialScore: number
+  }>
 }
 
 export interface UpdatePermissionsRequest {

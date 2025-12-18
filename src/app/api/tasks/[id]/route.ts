@@ -69,10 +69,6 @@ export async function PATCH(
       isApproved,
       claimCreator,
       removeCreator,
-      publishDate,
-      exposure,
-      registrations,
-      profit,
       order,
     } = body
 
@@ -91,9 +87,7 @@ export async function PATCH(
 
     // Check permissions based on what's being updated
     const isUpdatingCRUDFields = items !== undefined || videoUrl !== undefined ||
-      materialId !== undefined || notes !== undefined || publishDate !== undefined ||
-      exposure !== undefined || registrations !== undefined || profit !== undefined ||
-      order !== undefined
+      materialId !== undefined || notes !== undefined || order !== undefined
 
     const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
       claimSubmitter === true || removeSubmitter === true ||
@@ -163,18 +157,6 @@ export async function PATCH(
     }
     if (removeCreator === true) {
       updateData.creatorId = null
-    }
-    if (publishDate !== undefined) {
-      updateData.publishDate = publishDate ? new Date(publishDate) : null
-    }
-    if (typeof exposure === 'number') {
-      updateData.exposure = exposure
-    }
-    if (typeof registrations === 'number') {
-      updateData.registrations = registrations
-    }
-    if (typeof profit === 'number') {
-      updateData.profit = profit
     }
     if (typeof order === 'number') {
       updateData.order = order
