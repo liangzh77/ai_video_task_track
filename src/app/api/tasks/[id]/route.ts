@@ -141,7 +141,8 @@ export async function PATCH(
       updateData.videoUrl = videoUrl
     }
     if (materialId !== undefined) {
-      updateData.materialId = materialId
+      // 去掉前后的空格和制表符
+      updateData.materialId = typeof materialId === 'string' ? materialId.trim() : materialId
     }
     if (notes !== undefined) {
       updateData.notes = notes
