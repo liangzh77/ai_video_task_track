@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, DragEvent } from 'react'
 import { SortableItems } from '@/components/task/sortable-items'
 import { VideoItem } from '@/components/task/video-item'
+import { EditableField } from '@/components/task/editable-field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { convertToJpg } from '@/lib/image-utils'
@@ -171,6 +172,31 @@ export function TemplateRow({
       }
     } catch (error) {
       console.error('更新视频失败:', error)
+    }
+  }
+
+  const updateNotes = async (notes: string | number) => {
+    try {
+      const response = await fetch(`/api/templates/${template.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      })
+
+      if (!response.ok) {
+        throw new Error('更新备注失败')
+      }
+
+      const updatedTemplate = await response.json()
+      if (typeof updatedTemplate.items === 'string') {
+        updatedTemplate.items = JSON.parse(updatedTemplate.items)
+      }
+      if (onTemplateUpdate) {
+        onTemplateUpdate(template.id, updatedTemplate)
+      }
+    } catch (error) {
+      console.error('更新备注失败:', error)
+      throw error
     }
   }
 
@@ -361,6 +387,17 @@ export function TemplateRow({
             />
           }
         />
+
+        {/* 备注 */}
+        <div className="text-sm">
+          <span className="text-blue-700">备注：</span>
+          <EditableField
+            value={template.notes}
+            onSave={updateNotes}
+            disabled={!canEdit}
+            placeholder="点击添加备注"
+          />
+        </div>
       </div>
     </div>
   )

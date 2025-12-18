@@ -67,7 +67,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { name, items, videoUrl, order } = body
+    const { name, items, videoUrl, notes, order } = body
 
     // Check if template exists
     const existingTemplate = await prisma.template.findUnique({
@@ -91,6 +91,9 @@ export async function PATCH(
     }
     if (videoUrl !== undefined) {
       updateData.videoUrl = videoUrl
+    }
+    if (notes !== undefined) {
+      updateData.notes = notes
     }
     if (typeof order === 'number') {
       updateData.order = order

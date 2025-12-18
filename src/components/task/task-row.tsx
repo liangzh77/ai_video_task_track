@@ -308,6 +308,29 @@ export function TaskRow({
     }
   }
 
+  const handleClearMetrics = async () => {
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clearMetrics: true }),
+      })
+
+      if (!response.ok) {
+        throw new Error('清除数据失败')
+      }
+
+      const updatedTask = await response.json()
+      if (onTaskUpdate) {
+        onTaskUpdate(task.id, { ...updatedTask, dailyMetrics: [], metricsSummary: undefined })
+      }
+    } catch (error) {
+      console.error('清除数据失败:', error)
+    }
+  }
+
+  const hasMetrics = task.dailyMetrics && task.dailyMetrics.length > 0
+
   return (
     <div
       className={`relative bg-white border rounded-lg p-2 ml-2 sm:ml-4 hover:shadow-sm transition-all group ${
@@ -341,7 +364,7 @@ export function TaskRow({
           }
         />
 
-        {/* Task Info - single row */}
+        {/* Row 1: 基本信息 */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <div>
             <span className="text-gray-500">素材ID：</span>
@@ -448,11 +471,15 @@ export function TaskRow({
             )}
           </div>
 
-          {/* 数据指标 */}
-          <MetricsDisplay
-            summary={task.metricsSummary}
-            dailyMetrics={task.dailyMetrics}
-          />
+          <div>
+            <span className="text-gray-500">反馈：</span>
+            <EditableField
+              value={task.feedback}
+              onSave={(value) => handleFieldSave('feedback', value)}
+              disabled={!canEdit}
+              placeholder="-"
+            />
+          </div>
 
           {/* Delete button */}
           {canEdit && onDelete && (
@@ -490,6 +517,26 @@ export function TaskRow({
             </div>
           )}
         </div>
+
+        {/* Row 2: 数据指标 (只在有数据时显示) */}
+        {hasMetrics && (
+          <div className="flex items-center gap-2 text-sm">
+            <MetricsDisplay
+              summary={task.metricsSummary}
+              dailyMetrics={task.dailyMetrics}
+            />
+            {canEdit && (
+              <button
+                type="button"
+                onClick={handleClearMetrics}
+                className="w-5 h-5 bg-gray-200 text-gray-500 rounded-full text-xs flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                title="清除数据"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

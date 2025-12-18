@@ -17,6 +17,7 @@ export interface Template {
   name: string
   items: ContentItem[]
   videoUrl: string | null
+  notes: string
   order: number
   tasks: Task[]
 }
@@ -56,6 +57,7 @@ export interface Task {
   videoUrl: string | null
   materialId: string
   notes: string
+  feedback: string
   submitter: Pick<User, 'id' | 'username'> | null
   isApproved: boolean
   creator: Pick<User, 'id' | 'username'> | null
@@ -94,6 +96,7 @@ export interface UpdateTaskRequest {
   videoUrl?: string | null
   materialId?: string
   notes?: string
+  feedback?: string
   isApproved?: boolean
   claimCreator?: boolean
   order?: number

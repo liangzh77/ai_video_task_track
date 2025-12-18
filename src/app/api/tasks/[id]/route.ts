@@ -64,12 +64,14 @@ export async function PATCH(
       videoUrl,
       materialId,
       notes,
+      feedback,
       claimSubmitter,
       removeSubmitter,
       isApproved,
       claimCreator,
       removeCreator,
       order,
+      clearMetrics,
     } = body
 
     // Check if task exists
@@ -87,7 +89,8 @@ export async function PATCH(
 
     // Check permissions based on what's being updated
     const isUpdatingCRUDFields = items !== undefined || videoUrl !== undefined ||
-      materialId !== undefined || notes !== undefined || order !== undefined
+      materialId !== undefined || notes !== undefined || feedback !== undefined ||
+      order !== undefined || clearMetrics === true
 
     const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
       claimSubmitter === true || removeSubmitter === true ||
@@ -143,6 +146,9 @@ export async function PATCH(
     if (notes !== undefined) {
       updateData.notes = notes
     }
+    if (feedback !== undefined) {
+      updateData.feedback = feedback
+    }
     if (claimSubmitter === true) {
       updateData.submitterId = session.user.id
     }
@@ -162,6 +168,13 @@ export async function PATCH(
       updateData.order = order
     }
 
+    // Clear metrics if requested
+    if (clearMetrics === true) {
+      await prisma.dailyMetrics.deleteMany({
+        where: { taskId: id },
+      })
+    }
+
     const task = await prisma.task.update({
       where: { id },
       data: updateData,
@@ -177,6 +190,9 @@ export async function PATCH(
             id: true,
             username: true,
           },
+        },
+        dailyMetrics: {
+          orderBy: { date: 'desc' },
         },
       },
     })
