@@ -177,44 +177,31 @@ export default function DashboardPage() {
   // CSV 拖拽处理
   const handleCsvDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    // 检查是否有 CSV 文件
-    const items = Array.from(e.dataTransfer.items)
-    const hasCsv = items.some(item =>
-      item.kind === 'file' &&
-      (item.type === 'text/csv' || item.type === 'application/vnd.ms-excel')
-    )
-    if (hasCsv) {
-      setIsDragOverCsv(true)
-    }
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'copy'
+    setIsDragOverCsv(true)
   }
 
   const handleCsvDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    // 检查是否真的离开了容器
-    const rect = e.currentTarget.getBoundingClientRect()
-    if (
-      e.clientX < rect.left ||
-      e.clientX > rect.right ||
-      e.clientY < rect.top ||
-      e.clientY > rect.bottom
-    ) {
-      setIsDragOverCsv(false)
-    }
+    e.stopPropagation()
+    setIsDragOverCsv(false)
   }
 
   const handleCsvDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsDragOverCsv(false)
 
     const files = Array.from(e.dataTransfer.files)
-    const csvFile = files.find(file =>
+    const foundCsvFile = files.find(file =>
       file.type === 'text/csv' ||
       file.type === 'application/vnd.ms-excel' ||
-      file.name.endsWith('.csv')
+      file.name.toLowerCase().endsWith('.csv')
     )
 
-    if (csvFile) {
-      setCsvFile(csvFile)
+    if (foundCsvFile) {
+      setCsvFile(foundCsvFile)
       setShowCsvModal(true)
     }
   }
@@ -265,26 +252,7 @@ export default function DashboardPage() {
   const canEdit = session?.user?.canCRUD || false
 
   return (
-    <div
-      className={`max-w-full mx-auto min-h-screen relative ${
-        isDragOverCsv ? 'bg-blue-50' : ''
-      }`}
-      onDragOver={handleCsvDragOver}
-      onDragLeave={handleCsvDragLeave}
-      onDrop={handleCsvDrop}
-    >
-      {/* CSV 拖拽提示 */}
-      {isDragOverCsv && (
-        <div className="fixed inset-0 bg-blue-500/20 flex items-center justify-center z-40 pointer-events-none">
-          <div className="bg-white rounded-lg shadow-xl p-8 text-center">
-            <svg className="w-16 h-16 mx-auto text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            <p className="text-lg font-semibold text-gray-700">释放以导入 CSV 数据</p>
-          </div>
-        </div>
-      )}
-
+    <div className="max-w-full mx-auto min-h-screen relative">
       {/* 导入成功消息 */}
       {importMessage && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
@@ -294,6 +262,21 @@ export default function DashboardPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900">任务跟踪</h2>
+
+        {/* CSV 拖拽区域 - 居中 */}
+        <div
+          className={`flex-1 mx-4 py-2 px-4 border-2 border-dashed rounded-lg text-center text-sm transition-all ${
+            isDragOverCsv
+              ? 'border-blue-500 bg-blue-50 text-blue-600'
+              : 'border-gray-300 text-gray-400 hover:border-gray-400'
+          }`}
+          onDragOver={handleCsvDragOver}
+          onDragLeave={handleCsvDragLeave}
+          onDrop={handleCsvDrop}
+        >
+          {isDragOverCsv ? '释放以导入 CSV 数据' : '拖拽 CSV 文件到此处导入数据'}
+        </div>
+
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <div className="text-sm text-gray-500">
             欢迎，{session?.user?.username}
