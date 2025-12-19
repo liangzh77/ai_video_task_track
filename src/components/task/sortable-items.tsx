@@ -524,7 +524,7 @@ function SortableItem({
                 if (!disabled) setIsEditing(true)
               }}
           >
-            <span className="text-xs text-gray-700 text-left overflow-hidden block w-full whitespace-pre-line">
+            <span className="text-xs text-gray-700 text-left overflow-hidden block w-full whitespace-pre">
               {item.content}
             </span>
           </div>
