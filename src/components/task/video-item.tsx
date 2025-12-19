@@ -344,7 +344,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     <>
       <div
         className={`
-          relative h-[60px] flex-shrink-0 rounded border-2 overflow-hidden group
+          relative h-[60px] min-w-[60px] flex-shrink-0 rounded border-2 overflow-hidden group
           ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
         `}
         onDragOver={handleDragOver}

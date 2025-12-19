@@ -312,7 +312,7 @@ function SortableItem({
         ref={useNativeDrag ? undefined : setNodeRef}
         style={style}
         className={`
-          relative h-[60px] group flex-shrink-0 rounded border-2 overflow-hidden
+          relative h-[60px] min-w-[60px] group flex-shrink-0 rounded border-2 overflow-hidden
           ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'}
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
@@ -524,7 +524,7 @@ function SortableItem({
                 if (!disabled) setIsEditing(true)
               }}
           >
-            <span className="text-xs text-gray-700 text-left whitespace-nowrap overflow-hidden block w-full">
+            <span className="text-xs text-gray-700 text-left overflow-hidden block w-full line-clamp-3" style={{ wordBreak: 'break-all' }}>
               {item.content}
             </span>
           </div>

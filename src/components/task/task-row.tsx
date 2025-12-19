@@ -337,11 +337,11 @@ export function TaskRow({
     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
   }
 
-  // 截断用户名，固定宽度100px，超出显示...
+  // 截断用户名，固定宽度120px，超出显示...
   const truncateUsername = (username: string | null | undefined) => {
     if (!username) return ''
-    // 大约12个字符能显示在100px内
-    return username.length > 8 ? username.slice(0, 8) + '...' : username
+    // 大约12个字符能显示在120px内
+    return username.length > 12 ? username.slice(0, 12) + '...' : username
   }
 
   return (
@@ -467,7 +467,7 @@ export function TaskRow({
             {task.submitter ? (
               <div className="flex items-center gap-1">
                 <span
-                  className="text-gray-900 w-[60px] truncate inline-block"
+                  className="text-gray-900 w-[120px] truncate inline-block"
                   title={task.submitter.username}
                 >
                   {truncateUsername(task.submitter.username)}
@@ -525,7 +525,7 @@ export function TaskRow({
             {task.creator ? (
               <div className="flex items-center gap-1">
                 <span
-                  className="text-gray-900 w-[60px] truncate inline-block"
+                  className="text-gray-900 w-[120px] truncate inline-block"
                   title={task.creator.username}
                 >
                   {truncateUsername(task.creator.username)}
