@@ -292,10 +292,26 @@ export function TemplateRow({
 
     // 检查是否有文件
     const files = Array.from(e.dataTransfer.files)
-    const imageFiles = files.filter(file => file.type.startsWith('image/'))
 
+    // 处理图片文件
+    const imageFiles = files.filter(file => file.type.startsWith('image/'))
     for (const file of imageFiles) {
       await uploadAndAddImage(file)
+    }
+
+    // 处理文本文件 (.txt, .srt)
+    const textFiles = files.filter(file =>
+      file.name.endsWith('.txt') || file.name.endsWith('.srt')
+    )
+    for (const file of textFiles) {
+      try {
+        const text = await file.text()
+        if (text.trim()) {
+          await addContentItemToTemplate({ type: 'text', content: text.trim() })
+        }
+      } catch (error) {
+        console.error('读取文本文件失败:', error)
+      }
     }
   }
 
