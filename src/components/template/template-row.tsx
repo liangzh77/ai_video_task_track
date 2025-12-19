@@ -307,8 +307,8 @@ export function TemplateRow({
 
   return (
     <div
-      className={`bg-blue-50 border rounded-lg p-2 group relative ${
-        isDragOver ? 'border-blue-500 border-2 bg-blue-100 shadow-md' : 'border-blue-200'
+      className={`bg-blue-100 border rounded-lg p-2 group relative ${
+        isDragOver ? 'border-blue-500 border-2 bg-blue-200 shadow-md' : 'border-blue-300'
       } ${isUploading ? 'opacity-70' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}

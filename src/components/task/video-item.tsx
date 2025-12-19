@@ -308,7 +308,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     return (
       <div
         className={`
-          relative h-[80px] w-[80px] flex-shrink-0 rounded border-2 border-dashed
+          relative h-[60px] w-[60px] flex-shrink-0 rounded border-2 border-dashed
           flex items-center justify-center text-center
           ${disabled ? 'border-gray-200 bg-gray-50 text-gray-300' :
             isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'}
@@ -320,7 +320,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
       >
         {isUploading ? (
           <div className="flex flex-col items-center gap-1">
-            <div className="w-12 h-1 bg-gray-200 rounded overflow-hidden">
+            <div className="w-10 h-1 bg-gray-200 rounded overflow-hidden">
               <div
                 className="h-full bg-blue-500 transition-all"
                 style={{ width: `${uploadProgress}%` }}
@@ -329,8 +329,8 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
             <span className="text-xs text-gray-500">{uploadProgress}%</span>
           </div>
         ) : (
-          <span className="text-xs text-gray-400 px-2">
-            {disabled ? '无视频' : '拖拽视频到此处'}
+          <span className="text-xs text-gray-400 px-1">
+            {disabled ? '无' : '视频'}
           </span>
         )}
       </div>
@@ -344,7 +344,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     <>
       <div
         className={`
-          relative h-[80px] w-[80px] flex-shrink-0 rounded border-2 overflow-hidden group
+          relative h-[60px] flex-shrink-0 rounded border-2 overflow-hidden group
           ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
         `}
         onDragOver={handleDragOver}
@@ -354,28 +354,28 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {/* 视频缩略图 */}
+        {/* 视频缩略图 - 保持原始宽高比 */}
         {isLoadingVideo ? (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-xs text-gray-400">加载中...</span>
+          <div className="w-[60px] h-full flex items-center justify-center bg-gray-100">
+            <span className="text-xs text-gray-400">...</span>
           </div>
         ) : playableUrl ? (
           <video
             ref={videoRef}
             src={playableUrl}
-            className="w-full h-full object-cover"
+            className="h-full w-auto object-contain"
             muted
             preload="metadata"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-xs text-gray-400">加载失败</span>
+          <div className="w-[60px] h-full flex items-center justify-center bg-gray-100">
+            <span className="text-xs text-gray-400">失败</span>
           </div>
         )}
 
         {/* 播放图标 */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
+          <div className="w-6 h-6 bg-black/50 rounded-full flex items-center justify-center">
             <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>

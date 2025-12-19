@@ -312,7 +312,7 @@ function SortableItem({
         ref={useNativeDrag ? undefined : setNodeRef}
         style={style}
         className={`
-          relative h-[80px] group flex-shrink-0 rounded border-2 overflow-hidden
+          relative h-[60px] group flex-shrink-0 rounded border-2 overflow-hidden
           ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'}
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
@@ -485,7 +485,7 @@ function SortableItem({
       ref={useNativeDrag ? undefined : setNodeRef}
       style={style}
       className={`
-        relative h-[80px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
+        relative h-[60px] w-[60px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
         ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : ''}
         ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
         ${isSaving ? 'pointer-events-none' : ''}
@@ -516,7 +516,7 @@ function SortableItem({
         ) : (
           <>
             <div
-              className={`h-full flex items-start justify-start p-2 overflow-hidden ${
+              className={`h-full w-full flex items-start justify-start p-1 overflow-hidden ${
                 disabled ? '' : 'cursor-pointer hover:bg-gray-200'
               }`}
               onClick={(e) => {
@@ -524,7 +524,7 @@ function SortableItem({
                 if (!disabled) setIsEditing(true)
               }}
           >
-            <span className="text-sm text-gray-700 text-left break-words line-clamp-4 whitespace-pre-wrap">
+            <span className="text-xs text-gray-700 text-left whitespace-nowrap overflow-hidden block w-full">
               {item.content}
             </span>
           </div>
@@ -709,7 +709,7 @@ export function SortableItems({
   const useNativeDrag = draggableImages
 
   const itemsContent = (
-    <div className="flex gap-2 flex-wrap items-center min-h-[80px]">
+    <div className="flex gap-2 flex-wrap items-center min-h-[60px]">
       {items.map((item, index) => (
         <SortableItem
           key={`item-${index}`}
@@ -727,8 +727,8 @@ export function SortableItems({
         />
       ))}
       {items.length === 0 && !disabled && (
-        <div className="flex items-center justify-center w-[80px] h-[80px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
-          拖拽内容到此处
+        <div className="flex items-center justify-center w-[60px] h-[60px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
+          拖拽
         </div>
       )}
       {endSlot}
@@ -737,9 +737,9 @@ export function SortableItems({
           size="sm"
           variant="outline"
           onClick={handleAddEmptyText}
-          className="h-[80px] px-4 whitespace-nowrap ml-auto"
+          className="h-[60px] px-3 whitespace-nowrap ml-auto text-xs"
         >
-          添加文案
+          +文案
         </Button>
       )}
     </div>

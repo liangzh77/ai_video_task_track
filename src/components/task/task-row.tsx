@@ -331,10 +331,17 @@ export function TaskRow({
 
   const hasMetrics = task.dailyMetrics && task.dailyMetrics.length > 0
 
-  // 截断文字，超过15个字符显示...
+  // 截断文字，超过maxLen个字符显示前面部分+...
   const truncateText = (text: string | null | undefined, maxLen = 15) => {
     if (!text) return ''
     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
+  }
+
+  // 截断用户名，固定宽度100px，超出显示...
+  const truncateUsername = (username: string | null | undefined) => {
+    if (!username) return ''
+    // 大约12个字符能显示在100px内
+    return username.length > 8 ? username.slice(0, 8) + '...' : username
   }
 
   return (
@@ -354,8 +361,8 @@ export function TaskRow({
       <div className="flex flex-col gap-2">
         {/* Main row: Left info + Right items */}
         <div className="flex gap-3 items-start">
-          {/* 左侧：素材ID和备注 */}
-          <div className="flex flex-col gap-1 w-[120px] flex-shrink-0 text-sm">
+          {/* 左侧：素材ID、备注、反馈 */}
+          <div className="flex flex-col gap-0.5 w-[100px] flex-shrink-0 text-xs">
             <div
               className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded"
               title={task.materialId || '点击添加素材ID'}
@@ -366,11 +373,11 @@ export function TaskRow({
                 onSave={(value) => handleFieldSave('materialId', value)}
                 disabled={!canEdit}
                 placeholder="-"
-                displayValue={truncateText(task.materialId, 10)}
+                displayValue={truncateText(task.materialId, 8)}
               />
             </div>
             <div
-              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-xs text-gray-500"
+              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
               title={task.notes || '点击添加备注'}
             >
               <EditableField
@@ -378,7 +385,19 @@ export function TaskRow({
                 onSave={(value) => handleFieldSave('notes', value)}
                 disabled={!canEdit}
                 placeholder="备注"
-                displayValue={truncateText(task.notes, 12)}
+                displayValue={truncateText(task.notes, 10)}
+              />
+            </div>
+            <div
+              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
+              title={task.feedback || '点击添加反馈'}
+            >
+              <EditableField
+                value={task.feedback}
+                onSave={(value) => handleFieldSave('feedback', value)}
+                disabled={!canEdit}
+                placeholder="反馈"
+                displayValue={truncateText(task.feedback, 10)}
               />
             </div>
           </div>
@@ -441,27 +460,32 @@ export function TaskRow({
           )}
         </div>
 
-        {/* Row 2: 其他信息 */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        {/* Row 2: 基本信息 + 数据指标（同一行） */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <div className="flex items-center gap-1">
             <span className="text-gray-500">提交者：</span>
             {task.submitter ? (
-              <>
-                <span className="text-gray-900">{task.submitter.username}</span>
+              <div className="flex items-center gap-1">
+                <span
+                  className="text-gray-900 w-[60px] truncate inline-block"
+                  title={task.submitter.username}
+                >
+                  {truncateUsername(task.submitter.username)}
+                </span>
                 {isSubmitter && (
-                  <span className="text-xs text-blue-600">(我)</span>
+                  <span className="text-blue-600">(我)</span>
                 )}
                 {canRemoveSubmitter && (
                   <button
                     type="button"
                     onClick={handleRemoveSubmitter}
-                    className="w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 ml-1"
+                    className="w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
                     title="移除提交者"
                   >
                     ×
                   </button>
                 )}
-              </>
+              </div>
             ) : (canEdit || canApprove) && currentUserId ? (
               <button
                 type="button"
@@ -499,22 +523,27 @@ export function TaskRow({
           <div className="flex items-center gap-1">
             <span className="text-gray-500">制作人：</span>
             {task.creator ? (
-              <>
-                <span className="text-gray-900">{task.creator.username}</span>
+              <div className="flex items-center gap-1">
+                <span
+                  className="text-gray-900 w-[60px] truncate inline-block"
+                  title={task.creator.username}
+                >
+                  {truncateUsername(task.creator.username)}
+                </span>
                 {isCreator && (
-                  <span className="text-xs text-blue-600">(我)</span>
+                  <span className="text-blue-600">(我)</span>
                 )}
                 {canRemoveCreator && (
                   <button
                     type="button"
                     onClick={handleRemoveCreator}
-                    className="w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 ml-1"
+                    className="w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
                     title="移除制作人"
                   >
                     ×
                   </button>
                 )}
-              </>
+              </div>
             ) : (canEdit || canApprove) && currentUserId && task.isApproved ? (
               <button
                 type="button"
@@ -528,36 +557,28 @@ export function TaskRow({
             )}
           </div>
 
-          <div>
-            <span className="text-gray-500">反馈：</span>
-            <EditableField
-              value={task.feedback}
-              onSave={(value) => handleFieldSave('feedback', value)}
-              disabled={!canEdit}
-              placeholder="-"
-            />
-          </div>
+          {/* 数据指标（放在同一行右侧） */}
+          {hasMetrics && (
+            <>
+              <div className="flex items-center gap-2">
+                <MetricsDisplay
+                  summary={task.metricsSummary}
+                  dailyMetrics={task.dailyMetrics}
+                />
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={handleClearMetrics}
+                    className="w-4 h-4 bg-gray-200 text-gray-500 rounded-full text-xs flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                    title="清除数据"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
-
-        {/* Row 2: 数据指标 (只在有数据时显示) */}
-        {hasMetrics && (
-          <div className="flex items-center gap-2 text-sm">
-            <MetricsDisplay
-              summary={task.metricsSummary}
-              dailyMetrics={task.dailyMetrics}
-            />
-            {canEdit && (
-              <button
-                type="button"
-                onClick={handleClearMetrics}
-                className="w-5 h-5 bg-gray-200 text-gray-500 rounded-full text-xs flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
-                title="清除数据"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )
