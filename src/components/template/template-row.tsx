@@ -333,7 +333,7 @@ export function TemplateRow({
             />
           ) : (
             <h3
-              className={`text-sm font-semibold text-blue-900 truncate ${
+              className={`text-sm font-semibold text-blue-900 overflow-hidden whitespace-nowrap ${
                 canEdit ? 'cursor-pointer hover:bg-blue-200 px-1 rounded transition-colors' : ''
               }`}
               onClick={() => canEdit && setIsEditingName(true)}
@@ -343,7 +343,7 @@ export function TemplateRow({
             </h3>
           )}
           <div
-            className="text-xs text-gray-500 truncate cursor-pointer hover:bg-blue-200 px-1 rounded"
+            className="text-xs text-gray-500 overflow-hidden whitespace-nowrap cursor-pointer hover:bg-blue-200 px-1 rounded"
             title={template.notes || '点击添加备注'}
             onClick={() => canEdit && document.getElementById(`template-notes-${template.id}`)?.click()}
           >

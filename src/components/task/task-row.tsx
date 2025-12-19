@@ -364,7 +364,7 @@ export function TaskRow({
           {/* 左侧：素材ID、备注、反馈 */}
           <div className="flex flex-col gap-0.5 w-[200px] flex-shrink-0 text-xs">
             <div
-              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded"
+              className="overflow-hidden whitespace-nowrap cursor-pointer hover:bg-gray-100 px-1 rounded"
               title={task.materialId || '点击添加素材ID'}
             >
               <span className="text-gray-500">ID：</span>
@@ -376,7 +376,7 @@ export function TaskRow({
               />
             </div>
             <div
-              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
+              className="overflow-hidden whitespace-nowrap cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
               title={task.notes || '点击添加备注'}
             >
               <span className="text-gray-500">备注：</span>
@@ -388,7 +388,7 @@ export function TaskRow({
               />
             </div>
             <div
-              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
+              className="overflow-hidden whitespace-nowrap cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
               title={task.feedback || '点击添加反馈'}
             >
               <span className="text-gray-500">反馈：</span>
