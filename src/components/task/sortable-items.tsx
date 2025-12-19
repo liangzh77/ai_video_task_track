@@ -312,8 +312,8 @@ function SortableItem({
         ref={useNativeDrag ? undefined : setNodeRef}
         style={style}
         className={`
-          relative h-[60px] min-w-[60px] group flex-shrink-0 rounded border-2 overflow-hidden
-          ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'}
+          relative h-[60px] min-w-[60px] group flex-shrink-0 rounded border-2 overflow-hidden flex items-center justify-center
+          ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
         `}

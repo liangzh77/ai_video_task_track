@@ -321,7 +321,7 @@ export function TemplateRow({
       )}
       <div className="flex gap-3 items-start">
         {/* 左侧：标题和备注 */}
-        <div className="flex flex-col gap-1 w-[120px] flex-shrink-0">
+        <div className="flex flex-col gap-0.5 w-[200px] flex-shrink-0">
           {isEditingName ? (
             <Input
               ref={nameInputRef}
@@ -334,24 +334,25 @@ export function TemplateRow({
           ) : (
             <h3
               className={`text-sm font-semibold text-blue-900 truncate ${
-                canEdit ? 'cursor-pointer hover:bg-blue-100 px-1 rounded transition-colors' : ''
+                canEdit ? 'cursor-pointer hover:bg-blue-200 px-1 rounded transition-colors' : ''
               }`}
               onClick={() => canEdit && setIsEditingName(true)}
               title={template.name}
             >
-              {truncateText(template.name)}
+              {template.name}
             </h3>
           )}
           <div
-            className="text-xs text-gray-500 truncate cursor-pointer hover:bg-blue-100 px-1 rounded"
+            className="text-xs text-gray-500 truncate cursor-pointer hover:bg-blue-200 px-1 rounded"
             title={template.notes || '点击添加备注'}
             onClick={() => canEdit && document.getElementById(`template-notes-${template.id}`)?.click()}
           >
+            <span className="text-gray-500">备注：</span>
             <EditableField
               value={template.notes}
               onSave={updateNotes}
               disabled={!canEdit}
-              placeholder="备注"
+              placeholder="-"
             />
           </div>
         </div>

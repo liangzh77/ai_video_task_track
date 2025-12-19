@@ -373,31 +373,30 @@ export function TaskRow({
                 onSave={(value) => handleFieldSave('materialId', value)}
                 disabled={!canEdit}
                 placeholder="-"
-                displayValue={truncateText(task.materialId, 18)}
               />
             </div>
             <div
               className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
               title={task.notes || '点击添加备注'}
             >
+              <span className="text-gray-500">备注：</span>
               <EditableField
                 value={task.notes}
                 onSave={(value) => handleFieldSave('notes', value)}
                 disabled={!canEdit}
-                placeholder="备注"
-                displayValue={truncateText(task.notes, 22)}
+                placeholder="-"
               />
             </div>
             <div
               className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-gray-500"
               title={task.feedback || '点击添加反馈'}
             >
+              <span className="text-gray-500">反馈：</span>
               <EditableField
                 value={task.feedback}
                 onSave={(value) => handleFieldSave('feedback', value)}
                 disabled={!canEdit}
-                placeholder="反馈"
-                displayValue={truncateText(task.feedback, 22)}
+                placeholder="-"
               />
             </div>
           </div>
@@ -466,12 +465,7 @@ export function TaskRow({
             <span className="text-gray-500">提交者：</span>
             {task.submitter ? (
               <div className="flex items-center gap-1">
-                <span
-                  className="text-gray-900 w-[120px] truncate inline-block"
-                  title={task.submitter.username}
-                >
-                  {truncateUsername(task.submitter.username)}
-                </span>
+                <span className="text-gray-900">{task.submitter.username}</span>
                 {isSubmitter && (
                   <span className="text-blue-600">(我)</span>
                 )}
@@ -524,12 +518,7 @@ export function TaskRow({
             <span className="text-gray-500">制作人：</span>
             {task.creator ? (
               <div className="flex items-center gap-1">
-                <span
-                  className="text-gray-900 w-[120px] truncate inline-block"
-                  title={task.creator.username}
-                >
-                  {truncateUsername(task.creator.username)}
-                </span>
+                <span className="text-gray-900">{task.creator.username}</span>
                 {isCreator && (
                   <span className="text-blue-600">(我)</span>
                 )}
