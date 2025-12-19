@@ -360,69 +360,74 @@ function SortableItem({
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
         )}
 
-        {/* Action buttons - Copy and Download always visible, Delete only when not disabled */}
+        {/* Action buttons - two rows */}
         {!showDeleteConfirm && (
-          <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Copy image button */}
-            <button
-              type="button"
-              onClick={async (e) => {
-                e.stopPropagation()
-                try {
-                  const response = await fetch(item.content)
-                  const blob = await response.blob()
-                  await navigator.clipboard.write([
-                    new ClipboardItem({ [blob.type]: blob })
-                  ])
-                } catch (error) {
-                  console.error('复制图片失败:', error)
-                  // 降级为复制链接
-                  navigator.clipboard.writeText(item.content)
-                }
-              }}
-              className="w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-blue-600"
-              title="复制图片"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </button>
-            {/* Download button */}
-            <button
-              type="button"
-              onClick={async (e) => {
-                e.stopPropagation()
-                try {
-                  const response = await fetch(item.content)
-                  const blob = await response.blob()
-                  const url = URL.createObjectURL(blob)
-                  const link = document.createElement('a')
-                  link.href = url
-                  link.download = item.content.split('/').pop() || 'image'
-                  link.click()
-                  URL.revokeObjectURL(url)
-                } catch (error) {
-                  console.error('下载失败:', error)
-                }
-              }}
-              className="w-5 h-5 bg-green-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-green-600"
-              title="下载"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </button>
-            {/* Delete button - only when not disabled */}
-            {!disabled && (
+          <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Row 1: Download and Delete */}
+            <div className="flex gap-1">
+              {/* Download button */}
               <button
                 type="button"
-                onClick={handleDeleteClick}
-                className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-                title="删除"
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  try {
+                    const response = await fetch(item.content)
+                    const blob = await response.blob()
+                    const url = URL.createObjectURL(blob)
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.download = item.content.split('/').pop() || 'image'
+                    link.click()
+                    URL.revokeObjectURL(url)
+                  } catch (error) {
+                    console.error('下载失败:', error)
+                  }
+                }}
+                className="w-5 h-5 bg-green-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-green-600"
+                title="下载"
               >
-                ×
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
               </button>
-            )}
+              {/* Delete button - only when not disabled */}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={handleDeleteClick}
+                  className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                  title="删除"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            {/* Row 2: Copy button */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  try {
+                    const response = await fetch(item.content)
+                    const blob = await response.blob()
+                    await navigator.clipboard.write([
+                      new ClipboardItem({ [blob.type]: blob })
+                    ])
+                  } catch (error) {
+                    console.error('复制图片失败:', error)
+                    // 降级为复制链接
+                    navigator.clipboard.writeText(item.content)
+                  }
+                }}
+                className="w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-blue-600"
+                title="复制图片"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
 
@@ -541,54 +546,59 @@ function SortableItem({
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none" />
           )}
 
-          {/* Action buttons - Copy and Download always visible, Delete only when not disabled */}
+          {/* Action buttons - two rows */}
           {!showDeleteConfirm && (
-            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Copy button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigator.clipboard.writeText(item.content)
-                }}
-                className="w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-blue-600"
-                title="复制文案"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </button>
-              {/* Download button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  const blob = new Blob([item.content], { type: 'text/plain;charset=utf-8' })
-                  const url = URL.createObjectURL(blob)
-                  const link = document.createElement('a')
-                  link.href = url
-                  link.download = 'text.txt'
-                  link.click()
-                  URL.revokeObjectURL(url)
-                }}
-                className="w-5 h-5 bg-green-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-green-600"
-                title="下载"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </button>
-              {/* Delete button - only when not disabled */}
-              {!disabled && (
+            <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Row 1: Download and Delete */}
+              <div className="flex gap-1">
+                {/* Download button */}
                 <button
                   type="button"
-                  onClick={handleDeleteClick}
-                  className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-                  title="删除"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    const blob = new Blob([item.content], { type: 'text/plain;charset=utf-8' })
+                    const url = URL.createObjectURL(blob)
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.download = 'text.txt'
+                    link.click()
+                    URL.revokeObjectURL(url)
+                  }}
+                  className="w-5 h-5 bg-green-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-green-600"
+                  title="下载"
                 >
-                  ×
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
                 </button>
-              )}
+                {/* Delete button - only when not disabled */}
+                {!disabled && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteClick}
+                    className="w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                    title="删除"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              {/* Row 2: Copy button */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigator.clipboard.writeText(item.content)
+                  }}
+                  className="w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-blue-600"
+                  title="复制文案"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
 
