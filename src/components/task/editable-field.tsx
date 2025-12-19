@@ -11,6 +11,7 @@ interface EditableFieldProps {
   prefix?: string
   suffix?: string
   placeholder?: string
+  displayValue?: string  // 用于显示截断后的值
 }
 
 export function EditableField({
@@ -21,6 +22,7 @@ export function EditableField({
   prefix,
   suffix,
   placeholder = '-',
+  displayValue,
 }: EditableFieldProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(String(value ?? ''))
@@ -72,11 +74,14 @@ export function EditableField({
     }
   }
 
+  // 计算要显示的值（优先使用 displayValue）
+  const showValue = displayValue !== undefined ? displayValue : value
+
   if (disabled) {
     return (
       <span className="text-gray-900">
         {prefix}
-        {value || placeholder}
+        {showValue || placeholder}
         {suffix}
       </span>
     )
@@ -104,7 +109,7 @@ export function EditableField({
       className="text-gray-900 hover:bg-gray-100 px-1 py-0.5 rounded cursor-pointer transition-colors"
     >
       {prefix}
-      {value || placeholder}
+      {showValue || placeholder}
       {suffix}
     </button>
   )

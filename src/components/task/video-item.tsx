@@ -308,7 +308,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     return (
       <div
         className={`
-          relative h-[100px] w-[100px] flex-shrink-0 rounded border-2 border-dashed
+          relative h-[80px] w-[80px] flex-shrink-0 rounded border-2 border-dashed
           flex items-center justify-center text-center
           ${disabled ? 'border-gray-200 bg-gray-50 text-gray-300' :
             isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'}
@@ -344,7 +344,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     <>
       <div
         className={`
-          relative h-[100px] w-[100px] flex-shrink-0 rounded border-2 overflow-hidden group
+          relative h-[80px] w-[80px] flex-shrink-0 rounded border-2 overflow-hidden group
           ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
         `}
         onDragOver={handleDragOver}

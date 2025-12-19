@@ -331,6 +331,12 @@ export function TaskRow({
 
   const hasMetrics = task.dailyMetrics && task.dailyMetrics.length > 0
 
+  // 截断文字，超过15个字符显示...
+  const truncateText = (text: string | null | undefined, maxLen = 15) => {
+    if (!text) return ''
+    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
+  }
+
   return (
     <div
       className={`relative bg-white border rounded-lg p-2 ml-2 sm:ml-4 hover:shadow-sm transition-all group ${
@@ -346,46 +352,97 @@ export function TaskRow({
         </div>
       )}
       <div className="flex flex-col gap-2">
-        {/* Items (Images + Texts) + Video */}
-        <SortableItems
-          items={items}
-          onUpdate={updateItems}
-          disabled={!canEdit}
-          draggableImages={true}
-          isSaving={isSaving}
-          endSlot={
-            <VideoItem
-              videoUrl={task.videoUrl}
-              onUpdate={async (videoUrl) => {
-                await handleFieldSave('videoUrl', videoUrl)
-              }}
-              disabled={!canEdit}
-            />
-          }
-        />
+        {/* Main row: Left info + Right items */}
+        <div className="flex gap-3 items-start">
+          {/* 左侧：素材ID和备注 */}
+          <div className="flex flex-col gap-1 w-[120px] flex-shrink-0 text-sm">
+            <div
+              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded"
+              title={task.materialId || '点击添加素材ID'}
+            >
+              <span className="text-gray-500">ID：</span>
+              <EditableField
+                value={task.materialId}
+                onSave={(value) => handleFieldSave('materialId', value)}
+                disabled={!canEdit}
+                placeholder="-"
+                displayValue={truncateText(task.materialId, 10)}
+              />
+            </div>
+            <div
+              className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded text-xs text-gray-500"
+              title={task.notes || '点击添加备注'}
+            >
+              <EditableField
+                value={task.notes}
+                onSave={(value) => handleFieldSave('notes', value)}
+                disabled={!canEdit}
+                placeholder="备注"
+                displayValue={truncateText(task.notes, 12)}
+              />
+            </div>
+          </div>
 
-        {/* Row 1: 基本信息 */}
+          {/* 右侧：Items (Images + Texts) + Video */}
+          <div className="flex-1 min-w-0">
+            <SortableItems
+              items={items}
+              onUpdate={updateItems}
+              disabled={!canEdit}
+              draggableImages={true}
+              isSaving={isSaving}
+              endSlot={
+                <VideoItem
+                  videoUrl={task.videoUrl}
+                  onUpdate={async (videoUrl) => {
+                    await handleFieldSave('videoUrl', videoUrl)
+                  }}
+                  disabled={!canEdit}
+                />
+              }
+            />
+          </div>
+
+          {/* Delete button */}
+          {canEdit && onDelete && (
+            <div className="flex-shrink-0">
+              {showDeleteConfirm ? (
+                <div className="flex flex-col gap-1">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="h-6 text-xs"
+                  >
+                    {isDeleting ? '...' : '确认'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="h-6 text-xs"
+                  >
+                    取消
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 h-6 px-2"
+                >
+                  删除
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Row 2: 其他信息 */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          <div>
-            <span className="text-gray-500">素材ID：</span>
-            <EditableField
-              value={task.materialId}
-              onSave={(value) => handleFieldSave('materialId', value)}
-              disabled={!canEdit}
-              placeholder="-"
-            />
-          </div>
-
-          <div>
-            <span className="text-gray-500">备注：</span>
-            <EditableField
-              value={task.notes}
-              onSave={(value) => handleFieldSave('notes', value)}
-              disabled={!canEdit}
-              placeholder="-"
-            />
-          </div>
-
           <div className="flex items-center gap-1">
             <span className="text-gray-500">提交者：</span>
             {task.submitter ? (
@@ -480,42 +537,6 @@ export function TaskRow({
               placeholder="-"
             />
           </div>
-
-          {/* Delete button */}
-          {canEdit && onDelete && (
-            <div className="ml-auto">
-              {showDeleteConfirm ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-red-600">确认删除？</span>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? '删除中...' : '确认'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={isDeleting}
-                  >
-                    取消
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 h-6 px-2"
-                >
-                  删除
-                </Button>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Row 2: 数据指标 (只在有数据时显示) */}

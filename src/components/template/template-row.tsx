@@ -299,9 +299,15 @@ export function TemplateRow({
     }
   }
 
+  // 截断文字，超过15个字符显示...
+  const truncateText = (text: string, maxLen = 15) => {
+    if (!text) return ''
+    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
+  }
+
   return (
     <div
-      className={`bg-blue-50 border rounded-lg p-4 group relative ${
+      className={`bg-blue-50 border rounded-lg p-2 group relative ${
         isDragOver ? 'border-blue-500 border-2 bg-blue-100 shadow-md' : 'border-blue-200'
       } ${isUploading ? 'opacity-70' : ''}`}
       onDragOver={handleDragOver}
@@ -313,8 +319,9 @@ export function TemplateRow({
           <span className="text-sm text-blue-600">上传中...</span>
         </div>
       )}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
+      <div className="flex gap-3 items-start">
+        {/* 左侧：标题和备注 */}
+        <div className="flex flex-col gap-1 w-[120px] flex-shrink-0">
           {isEditingName ? (
             <Input
               ref={nameInputRef}
@@ -322,82 +329,87 @@ export function TemplateRow({
               onChange={(e) => setEditName(e.target.value)}
               onBlur={handleSaveName}
               onKeyDown={handleNameKeyDown}
-              className="h-8 w-48 text-lg font-semibold"
+              className="h-7 text-sm font-semibold"
             />
           ) : (
             <h3
-              className={`text-lg font-semibold text-blue-900 ${
-                canEdit ? 'cursor-pointer hover:bg-blue-100 px-2 py-1 rounded transition-colors' : ''
+              className={`text-sm font-semibold text-blue-900 truncate ${
+                canEdit ? 'cursor-pointer hover:bg-blue-100 px-1 rounded transition-colors' : ''
               }`}
               onClick={() => canEdit && setIsEditingName(true)}
+              title={template.name}
             >
-              {template.name}
+              {truncateText(template.name)}
             </h3>
           )}
+          <div
+            className="text-xs text-gray-500 truncate cursor-pointer hover:bg-blue-100 px-1 rounded"
+            title={template.notes || '点击添加备注'}
+            onClick={() => canEdit && document.getElementById(`template-notes-${template.id}`)?.click()}
+          >
+            <EditableField
+              value={template.notes}
+              onSave={updateNotes}
+              disabled={!canEdit}
+              placeholder="备注"
+            />
+          </div>
+        </div>
 
-          {/* Delete button */}
-          {canEdit && onDelete && (
-            <div>
-              {showDeleteConfirm ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-red-600">确认删除？</span>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? '删除中...' : '确认'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={isDeleting}
-                  >
-                    取消
-                  </Button>
-                </div>
-              ) : (
+        {/* 右侧：Items */}
+        <div className="flex-1 min-w-0">
+          <SortableItems
+            items={items}
+            onUpdate={updateItems}
+            disabled={!canEdit}
+            draggableImages={canEdit}
+            isSaving={isSaving}
+            endSlot={
+              <VideoItem
+                videoUrl={template.videoUrl}
+                onUpdate={updateVideoUrl}
+                disabled={!canEdit}
+              />
+            }
+          />
+        </div>
+
+        {/* 删除按钮 */}
+        {canEdit && onDelete && (
+          <div className="flex-shrink-0">
+            {showDeleteConfirm ? (
+              <div className="flex flex-col gap-1">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="h-6 text-xs"
+                >
+                  {isDeleting ? '...' : '确认'}
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="h-6 text-xs"
                 >
-                  删除
+                  取消
                 </Button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Items */}
-        <SortableItems
-          items={items}
-          onUpdate={updateItems}
-          disabled={!canEdit}
-          draggableImages={canEdit}
-          isSaving={isSaving}
-          endSlot={
-            <VideoItem
-              videoUrl={template.videoUrl}
-              onUpdate={updateVideoUrl}
-              disabled={!canEdit}
-            />
-          }
-        />
-
-        {/* 备注 */}
-        <div className="text-sm">
-          <span className="text-blue-700">备注：</span>
-          <EditableField
-            value={template.notes}
-            onSave={updateNotes}
-            disabled={!canEdit}
-            placeholder="点击添加备注"
-          />
-        </div>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 h-6 px-2"
+              >
+                删除
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

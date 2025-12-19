@@ -312,7 +312,7 @@ function SortableItem({
         ref={useNativeDrag ? undefined : setNodeRef}
         style={style}
         className={`
-          relative h-[100px] group flex-shrink-0 rounded border-2 overflow-hidden
+          relative h-[80px] group flex-shrink-0 rounded border-2 overflow-hidden
           ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-transparent'}
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
@@ -485,7 +485,7 @@ function SortableItem({
       ref={useNativeDrag ? undefined : setNodeRef}
       style={style}
       className={`
-        relative h-[100px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
+        relative h-[80px] min-w-[80px] max-w-[150px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
         ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : ''}
         ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
         ${isSaving ? 'pointer-events-none' : ''}
@@ -709,7 +709,7 @@ export function SortableItems({
   const useNativeDrag = draggableImages
 
   const itemsContent = (
-    <div className="flex gap-2 flex-wrap items-center min-h-[100px]">
+    <div className="flex gap-2 flex-wrap items-center min-h-[80px]">
       {items.map((item, index) => (
         <SortableItem
           key={`item-${index}`}
@@ -727,7 +727,7 @@ export function SortableItems({
         />
       ))}
       {items.length === 0 && !disabled && (
-        <div className="flex items-center justify-center w-[100px] h-[100px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
+        <div className="flex items-center justify-center w-[80px] h-[80px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
           拖拽内容到此处
         </div>
       )}
@@ -737,7 +737,7 @@ export function SortableItems({
           size="sm"
           variant="outline"
           onClick={handleAddEmptyText}
-          className="h-[100px] px-4 whitespace-nowrap ml-auto"
+          className="h-[80px] px-4 whitespace-nowrap ml-auto"
         >
           添加文案
         </Button>
