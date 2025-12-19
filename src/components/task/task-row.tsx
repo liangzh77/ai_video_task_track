@@ -362,7 +362,7 @@ export function TaskRow({
         {/* Main row: Left info + Right items */}
         <div className="flex gap-3 items-start">
           {/* 左侧：素材ID、备注、反馈 */}
-          <div className="flex flex-col gap-0.5 w-[100px] flex-shrink-0 text-xs">
+          <div className="flex flex-col gap-0.5 w-[200px] flex-shrink-0 text-xs">
             <div
               className="truncate cursor-pointer hover:bg-gray-100 px-1 rounded"
               title={task.materialId || '点击添加素材ID'}
@@ -373,7 +373,7 @@ export function TaskRow({
                 onSave={(value) => handleFieldSave('materialId', value)}
                 disabled={!canEdit}
                 placeholder="-"
-                displayValue={truncateText(task.materialId, 8)}
+                displayValue={truncateText(task.materialId, 18)}
               />
             </div>
             <div
@@ -385,7 +385,7 @@ export function TaskRow({
                 onSave={(value) => handleFieldSave('notes', value)}
                 disabled={!canEdit}
                 placeholder="备注"
-                displayValue={truncateText(task.notes, 10)}
+                displayValue={truncateText(task.notes, 22)}
               />
             </div>
             <div
@@ -397,7 +397,7 @@ export function TaskRow({
                 onSave={(value) => handleFieldSave('feedback', value)}
                 disabled={!canEdit}
                 placeholder="反馈"
-                displayValue={truncateText(task.feedback, 10)}
+                displayValue={truncateText(task.feedback, 22)}
               />
             </div>
           </div>

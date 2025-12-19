@@ -524,7 +524,7 @@ function SortableItem({
                 if (!disabled) setIsEditing(true)
               }}
           >
-            <span className="text-xs text-gray-700 text-left overflow-hidden block w-full line-clamp-3" style={{ wordBreak: 'break-all' }}>
+            <span className="text-xs text-gray-700 text-left overflow-hidden block w-full whitespace-pre-line">
               {item.content}
             </span>
           </div>
