@@ -519,7 +519,7 @@ function SortableItem({
 
           {/* Action buttons - two rows */}
           {!showDeleteConfirm && (
-            <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
               {/* Row 1: Download and Delete */}
               <div className="flex gap-1">
                 {/* Download button */}
