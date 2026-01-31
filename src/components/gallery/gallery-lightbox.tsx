@@ -196,22 +196,50 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
     videoRef: React.RefObject<HTMLVideoElement | null>,
     itemId: string
   ) => {
+    // 对比模式使用固定容器尺寸，确保两边大小一致
+    const containerClass = hasComparison
+      ? 'w-[40vw] h-[60vh] relative'
+      : ''
+
     if (type === 'IMAGE') {
+      if (hasComparison) {
+        // 对比模式：使用 fill 属性让图片填充容器
+        return (
+          <div className={containerClass}>
+            <Image
+              src={url}
+              alt="作品"
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
+        )
+      }
+      // 单图模式
       return (
         <Image
           src={url}
           alt="作品"
-          width={hasComparison ? 600 : 1200}
-          height={hasComparison ? 600 : 1200}
-          className={`${hasComparison ? 'max-w-[40vw] max-h-[60vh]' : 'max-w-[90vw] max-h-[70vh]'} object-contain`}
+          width={1200}
+          height={1200}
+          className="max-w-[90vw] max-h-[70vh] object-contain"
           unoptimized
         />
       )
     }
 
     if (isLoading) {
-      return (
-        <div className={`flex items-center justify-center ${hasComparison ? 'w-[300px] h-[200px]' : 'w-[400px] h-[300px]'} bg-gray-800 text-white`}>
+      const loadingElement = (
+        <div className="flex items-center justify-center w-full h-full bg-gray-800 text-white">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">加载视频中...</span>
+          </div>
+        </div>
+      )
+      return hasComparison ? <div className={containerClass}>{loadingElement}</div> : (
+        <div className="flex items-center justify-center w-[400px] h-[300px] bg-gray-800 text-white">
           <div className="flex flex-col items-center gap-2">
             <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
             <span className="text-sm">加载视频中...</span>
@@ -221,12 +249,29 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
     }
 
     if (signedUrl) {
+      if (hasComparison) {
+        // 对比模式：视频填充容器
+        return (
+          <div className={`${containerClass} flex items-center justify-center`}>
+            <video
+              key={`${itemId}-${signedUrl}`}
+              ref={videoRef}
+              src={signedUrl}
+              className="max-w-full max-h-full object-contain"
+              controls
+              autoPlay={!needSyncPlay}
+              loop
+            />
+          </div>
+        )
+      }
+      // 单视频模式
       return (
         <video
           key={`${itemId}-${signedUrl}`}
           ref={videoRef}
           src={signedUrl}
-          className={`${hasComparison ? 'max-w-[40vw] max-h-[60vh]' : 'max-w-[90vw] max-h-[70vh]'}`}
+          className="max-w-[90vw] max-h-[70vh]"
           controls
           autoPlay={!needSyncPlay}
           loop
@@ -234,8 +279,13 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
       )
     }
 
-    return (
-      <div className={`flex items-center justify-center ${hasComparison ? 'w-[300px] h-[200px]' : 'w-[400px] h-[300px]'} bg-gray-800 text-white`}>
+    const placeholderElement = (
+      <div className="flex items-center justify-center w-full h-full bg-gray-800 text-white">
+        加载视频中...
+      </div>
+    )
+    return hasComparison ? <div className={containerClass}>{placeholderElement}</div> : (
+      <div className="flex items-center justify-center w-[400px] h-[300px] bg-gray-800 text-white">
         加载视频中...
       </div>
     )
