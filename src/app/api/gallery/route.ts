@@ -8,6 +8,8 @@ function formatGalleryItem(item: {
   id: string
   type: 'IMAGE' | 'VIDEO'
   url: string
+  sourceUrl: string | null
+  sourceType: 'IMAGE' | 'VIDEO' | null
   prompt: string
   createdAt: Date
   updatedAt: Date
@@ -18,6 +20,8 @@ function formatGalleryItem(item: {
     id: item.id,
     type: item.type,
     url: item.url,
+    sourceUrl: item.sourceUrl,
+    sourceType: item.sourceType,
     prompt: item.prompt,
     creator: item.creator,
     tags: item.tags.map(t => ({ id: t.tag.id, name: t.tag.name })),
@@ -98,7 +102,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { type, url, prompt = '', tags = [] } = body
+    const { type, url, sourceUrl, sourceType, prompt = '', tags = [] } = body
 
     if (!type || !['IMAGE', 'VIDEO'].includes(type)) {
       return NextResponse.json({ error: '类型无效' }, { status: 400 })
@@ -108,6 +112,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'URL 不能为空' }, { status: 400 })
     }
 
+    // 验证 sourceType（如果提供）
+    if (sourceType && !['IMAGE', 'VIDEO'].includes(sourceType)) {
+      return NextResponse.json({ error: '原始素材类型无效' }, { status: 400 })
+    }
+
     // 使用事务创建作品和标签关联
     const item = await prisma.$transaction(async (tx) => {
       // 创建作品
@@ -115,6 +124,8 @@ export async function POST(request: Request) {
         data: {
           type,
           url,
+          sourceUrl: sourceUrl || null,
+          sourceType: sourceType || null,
           prompt,
           creatorId: session.user.id,
         },

@@ -11,8 +11,49 @@ interface GalleryLightboxProps {
 }
 
 export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const resultVideoRef = useRef<HTMLVideoElement>(null)
+  const sourceVideoRef = useRef<HTMLVideoElement>(null)
   const [copied, setCopied] = useState(false)
+  const [sourcePlayableUrl, setSourcePlayableUrl] = useState<string | null>(null)
+  const [isLoadingSourceVideo, setIsLoadingSourceVideo] = useState(false)
+
+  // 加载原始素材的视频签名 URL
+  useEffect(() => {
+    if (!item?.sourceUrl || item.sourceType !== 'VIDEO') {
+      setSourcePlayableUrl(null)
+      return
+    }
+
+    let cancelled = false
+    setIsLoadingSourceVideo(true)
+
+    const loadSourceVideo = async () => {
+      try {
+        const signResponse = await fetch('/api/cos/sign-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: item.sourceUrl }),
+        })
+
+        if (signResponse.ok && !cancelled) {
+          const { signedUrl } = await signResponse.json()
+          setSourcePlayableUrl(signedUrl)
+        }
+      } catch (error) {
+        console.error('加载原始视频失败:', error)
+      } finally {
+        if (!cancelled) {
+          setIsLoadingSourceVideo(false)
+        }
+      }
+    }
+
+    loadSourceVideo()
+
+    return () => {
+      cancelled = true
+    }
+  }, [item?.sourceUrl, item?.sourceType])
 
   useEffect(() => {
     // 按 ESC 关闭
@@ -25,12 +66,84 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // 同步播放两个视频
   useEffect(() => {
-    // 打开时自动播放视频
-    if (item?.type === 'VIDEO' && videoRef.current && playableUrl) {
-      videoRef.current.play().catch(() => {})
+    if (!item) return
+
+    const hasSourceVideo = item.sourceType === 'VIDEO' && item.sourceUrl
+    const hasResultVideo = item.type === 'VIDEO'
+
+    // 对比模式：两个都是视频时，等待两个视频都准备好再同时播放
+    if (hasSourceVideo && hasResultVideo) {
+      // 等待两个视频 URL 都加载完成
+      if (!sourcePlayableUrl || !playableUrl) return
+
+      // 使用 setTimeout 确保 DOM 已更新
+      const timer = setTimeout(() => {
+        const sourceVideo = sourceVideoRef.current
+        const resultVideo = resultVideoRef.current
+
+        if (!sourceVideo || !resultVideo) return
+
+        let sourceReady = false
+        let resultReady = false
+
+        // 同时播放两个视频
+        const playBoth = () => {
+          sourceVideo.currentTime = 0
+          resultVideo.currentTime = 0
+          sourceVideo.play().catch(() => {})
+          resultVideo.play().catch(() => {})
+        }
+
+        const checkAndPlay = () => {
+          if (sourceReady && resultReady) {
+            playBoth()
+          }
+        }
+
+        const onSourceCanPlay = () => {
+          sourceReady = true
+          checkAndPlay()
+        }
+
+        const onResultCanPlay = () => {
+          resultReady = true
+          checkAndPlay()
+        }
+
+        // 检查是否已经可以播放
+        if (sourceVideo.readyState >= 3) {
+          sourceReady = true
+        } else {
+          sourceVideo.addEventListener('canplaythrough', onSourceCanPlay, { once: true })
+        }
+
+        if (resultVideo.readyState >= 3) {
+          resultReady = true
+        } else {
+          resultVideo.addEventListener('canplaythrough', onResultCanPlay, { once: true })
+        }
+
+        // 如果两个都准备好了，直接播放
+        checkAndPlay()
+      }, 100)
+
+      return () => clearTimeout(timer)
+    } else if (hasResultVideo && playableUrl) {
+      // 只有结果是视频
+      const timer = setTimeout(() => {
+        resultVideoRef.current?.play().catch(() => {})
+      }, 100)
+      return () => clearTimeout(timer)
+    } else if (hasSourceVideo && sourcePlayableUrl) {
+      // 只有原始素材是视频
+      const timer = setTimeout(() => {
+        sourceVideoRef.current?.play().catch(() => {})
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [item, playableUrl])
+  }, [item, playableUrl, sourcePlayableUrl])
 
   // 复制 Prompt
   const handleCopyPrompt = async () => {
@@ -69,6 +182,65 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
 
   if (!item) return null
 
+  const hasComparison = !!item.sourceUrl
+
+  // 检查是否需要同步播放（两边都是视频）
+  const needSyncPlay = item.sourceType === 'VIDEO' && item.type === 'VIDEO' && hasComparison
+
+  // 渲染单个媒体
+  const renderMedia = (
+    type: 'IMAGE' | 'VIDEO',
+    url: string,
+    signedUrl: string | null,
+    isLoading: boolean,
+    videoRef: React.RefObject<HTMLVideoElement | null>,
+    itemId: string
+  ) => {
+    if (type === 'IMAGE') {
+      return (
+        <Image
+          src={url}
+          alt="作品"
+          width={hasComparison ? 600 : 1200}
+          height={hasComparison ? 600 : 1200}
+          className={`${hasComparison ? 'max-w-[40vw] max-h-[60vh]' : 'max-w-[90vw] max-h-[70vh]'} object-contain`}
+          unoptimized
+        />
+      )
+    }
+
+    if (isLoading) {
+      return (
+        <div className={`flex items-center justify-center ${hasComparison ? 'w-[300px] h-[200px]' : 'w-[400px] h-[300px]'} bg-gray-800 text-white`}>
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">加载视频中...</span>
+          </div>
+        </div>
+      )
+    }
+
+    if (signedUrl) {
+      return (
+        <video
+          key={`${itemId}-${signedUrl}`}
+          ref={videoRef}
+          src={signedUrl}
+          className={`${hasComparison ? 'max-w-[40vw] max-h-[60vh]' : 'max-w-[90vw] max-h-[70vh]'}`}
+          controls
+          autoPlay={!needSyncPlay}
+          loop
+        />
+      )
+    }
+
+    return (
+      <div className={`flex items-center justify-center ${hasComparison ? 'w-[300px] h-[200px]' : 'w-[400px] h-[300px]'} bg-gray-800 text-white`}>
+        加载视频中...
+      </div>
+    )
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
@@ -85,28 +257,57 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
 
       {/* 内容区域 - 垂直布局 */}
       <div
-        className="flex flex-col items-center max-w-[90vw] max-h-[90vh]"
+        className="flex flex-col items-center max-w-[95vw] max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 媒体内容 */}
         <div className="flex-shrink-0">
-          {item.type === 'IMAGE' ? (
-            <Image
-              src={item.url}
-              alt={item.prompt || '作品'}
-              width={1200}
-              height={1200}
-              className="max-w-[90vw] max-h-[70vh] object-contain"
-              unoptimized
-            />
+          {hasComparison ? (
+            // 对比模式 - 左右布局
+            <div className="flex items-center gap-4">
+              {/* 左侧：原始素材 */}
+              <div className="flex flex-col items-center">
+                <span className="text-white/60 text-xs mb-2">原始素材</span>
+                {renderMedia(
+                  item.sourceType!,
+                  item.sourceUrl!,
+                  item.sourceType === 'VIDEO' ? sourcePlayableUrl : item.sourceUrl!,
+                  item.sourceType === 'VIDEO' && isLoadingSourceVideo,
+                  sourceVideoRef,
+                  `source-${item.id}`
+                )}
+              </div>
+
+              {/* 中间箭头 */}
+              <div className="flex-shrink-0 flex items-center justify-center px-4">
+                <svg className="w-10 h-10 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </div>
+
+              {/* 右侧：生成结果 */}
+              <div className="flex flex-col items-center">
+                <span className="text-white/60 text-xs mb-2">生成结果</span>
+                {renderMedia(
+                  item.type,
+                  item.url,
+                  item.type === 'VIDEO' ? playableUrl ?? null : item.url,
+                  false,
+                  resultVideoRef,
+                  `result-${item.id}`
+                )}
+              </div>
+            </div>
           ) : (
-            <video
-              ref={videoRef}
-              src={playableUrl || undefined}
-              className="max-w-[90vw] max-h-[70vh]"
-              controls
-              autoPlay
-            />
+            // 单个媒体模式
+            renderMedia(
+              item.type,
+              item.url,
+              item.type === 'VIDEO' ? playableUrl ?? null : item.url,
+              false,
+              resultVideoRef,
+              item.id
+            )
           )}
         </div>
 

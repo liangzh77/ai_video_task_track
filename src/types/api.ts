@@ -147,6 +147,8 @@ export interface GalleryItem {
   id: string
   type: MediaType
   url: string
+  sourceUrl: string | null  // 原始素材URL（对比展示时的"前"）
+  sourceType: MediaType | null  // 原始素材类型
   prompt: string
   creator: Pick<User, 'id' | 'username'> | null
   tags: Tag[]
@@ -172,6 +174,8 @@ export interface GalleryFilterParams {
 export interface CreateGalleryItemRequest {
   type: MediaType
   url: string
+  sourceUrl?: string | null  // 原始素材URL
+  sourceType?: MediaType | null  // 原始素材类型
   prompt: string
   tags: string[]
 }
@@ -179,4 +183,6 @@ export interface CreateGalleryItemRequest {
 export interface UpdateGalleryItemRequest {
   prompt?: string
   tags?: string[]
+  sourceUrl?: string | null  // 原始素材URL
+  sourceType?: MediaType | null  // 原始素材类型
 }

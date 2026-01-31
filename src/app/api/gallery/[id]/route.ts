@@ -8,6 +8,8 @@ function formatGalleryItem(item: {
   id: string
   type: 'IMAGE' | 'VIDEO'
   url: string
+  sourceUrl: string | null
+  sourceType: 'IMAGE' | 'VIDEO' | null
   prompt: string
   createdAt: Date
   updatedAt: Date
@@ -18,6 +20,8 @@ function formatGalleryItem(item: {
     id: item.id,
     type: item.type,
     url: item.url,
+    sourceUrl: item.sourceUrl,
+    sourceType: item.sourceType,
     prompt: item.prompt,
     creator: item.creator,
     tags: item.tags.map(t => ({ id: t.tag.id, name: t.tag.name })),
@@ -76,7 +80,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { prompt, tags } = body
+    const { prompt, tags, sourceUrl, sourceType } = body
 
     // 检查作品是否存在
     const existing = await prisma.galleryItem.findUnique({
@@ -87,13 +91,29 @@ export async function PATCH(
       return NextResponse.json({ error: '作品不存在' }, { status: 404 })
     }
 
+    // 验证 sourceType（如果提供）
+    if (sourceType !== undefined && sourceType !== null && !['IMAGE', 'VIDEO'].includes(sourceType)) {
+      return NextResponse.json({ error: '原始素材类型无效' }, { status: 400 })
+    }
+
     // 使用事务更新作品和标签
     const item = await prisma.$transaction(async (tx) => {
       // 更新基本信息
+      const updateData: { prompt?: string; sourceUrl?: string | null; sourceType?: 'IMAGE' | 'VIDEO' | null } = {}
       if (prompt !== undefined) {
+        updateData.prompt = prompt
+      }
+      if (sourceUrl !== undefined) {
+        updateData.sourceUrl = sourceUrl
+      }
+      if (sourceType !== undefined) {
+        updateData.sourceType = sourceType
+      }
+
+      if (Object.keys(updateData).length > 0) {
         await tx.galleryItem.update({
           where: { id },
-          data: { prompt },
+          data: updateData,
         })
       }
 
@@ -141,7 +161,8 @@ export async function PATCH(
     return NextResponse.json(formatGalleryItem(item))
   } catch (error) {
     console.error('更新作品失败:', error)
-    return NextResponse.json({ error: '服务器错误' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : '服务器错误'
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
 

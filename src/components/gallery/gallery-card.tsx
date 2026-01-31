@@ -155,9 +155,19 @@ export function GalleryCard({ item, canEdit, onEdit, onDelete, onClick }: Galler
         )}
       </div>
 
-      {/* 作者信息 - 左上角 */}
+      {/* 对比标记 - 左上角 */}
+      {item.sourceUrl && (
+        <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-purple-500 rounded text-xs text-white flex items-center gap-1">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+          对比
+        </div>
+      )}
+
+      {/* 作者信息 - 左上角（对比标记下方） */}
       {item.creator && (
-        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/50 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className={`absolute ${item.sourceUrl ? 'top-9' : 'top-2'} left-2 px-2 py-0.5 bg-black/50 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
           {item.creator.username}
         </div>
       )}
