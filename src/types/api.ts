@@ -4,6 +4,7 @@ export interface User {
   role: 'ADMIN' | 'USER'
   canCRUD: boolean
   canApprove: boolean
+  canViewGallery: boolean
   createdAt: string
 }
 
@@ -122,6 +123,7 @@ export interface ImportCsvRequest {
 export interface UpdatePermissionsRequest {
   canCRUD?: boolean
   canApprove?: boolean
+  canViewGallery?: boolean
 }
 
 export interface ReorderRequest {

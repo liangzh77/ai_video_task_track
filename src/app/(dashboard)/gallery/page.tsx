@@ -9,7 +9,8 @@ import { GalleryLightbox } from '@/components/gallery/gallery-lightbox'
 import type { GalleryItem, GalleryListResponse, MediaType, Tag, CreateGalleryItemRequest, UpdateGalleryItemRequest } from '@/types/api'
 
 export default function GalleryPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  const canViewGallery = session?.user?.canViewGallery || session?.user?.role === 'ADMIN' || false
   const canEdit = session?.user?.canCRUD || session?.user?.role === 'ADMIN' || false
 
   // 数据状态
@@ -184,6 +185,28 @@ export default function GalleryPage() {
   const handleCloseLightbox = () => {
     setLightboxItem(null)
     setLightboxPlayableUrl(null)
+  }
+
+  // 加载中状态
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // 没有权限
+  if (!canViewGallery) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <p className="text-lg font-medium">没有访问权限</p>
+        <p className="text-sm mt-1">请联系管理员开通 Gallery 权限</p>
+      </div>
+    )
   }
 
   return (

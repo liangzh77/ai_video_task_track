@@ -13,7 +13,8 @@ export function Header() {
   const [showChangePassword, setShowChangePassword] = useState(false)
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' })
+    const callbackUrl = pathname || '/dashboard'
+    await signOut({ callbackUrl: `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` })
   }
 
   // 判断当前页面是否为管理员页面

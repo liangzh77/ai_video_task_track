@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -36,7 +38,10 @@ export default function LoginPage() {
       const response = await fetch('/api/auth/session')
       const session = await response.json()
 
-      if (session?.user?.role === 'ADMIN') {
+      // Use callbackUrl if provided, otherwise use default based on role
+      if (callbackUrl) {
+        router.push(callbackUrl)
+      } else if (session?.user?.role === 'ADMIN') {
         router.push('/admin')
       } else {
         router.push('/dashboard')
@@ -108,7 +113,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-600">
             还没有账号？{' '}
-            <Link href="/register" className="text-blue-600 hover:text-blue-500">
+            <Link href={callbackUrl ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/register'} className="text-blue-600 hover:text-blue-500">
               注册
             </Link>
           </p>

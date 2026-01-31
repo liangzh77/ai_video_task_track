@@ -7,6 +7,7 @@ declare module 'next-auth' {
     role: string
     canCRUD: boolean
     canApprove: boolean
+    canViewGallery: boolean
   }
 
   interface Session {
@@ -21,5 +22,6 @@ declare module 'next-auth/jwt' {
     role: string
     canCRUD: boolean
     canApprove: boolean
+    canViewGallery: boolean
   }
 }

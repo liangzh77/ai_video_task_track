@@ -19,7 +19,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { canCRUD, canApprove } = body
+    const { canCRUD, canApprove, canViewGallery } = body
 
     // Check if trying to modify admin user
     const targetUser = await prisma.user.findUnique({
@@ -40,6 +40,7 @@ export async function PATCH(
       data: {
         ...(typeof canCRUD === 'boolean' && { canCRUD }),
         ...(typeof canApprove === 'boolean' && { canApprove }),
+        ...(typeof canViewGallery === 'boolean' && { canViewGallery }),
       },
       select: {
         id: true,
@@ -47,6 +48,7 @@ export async function PATCH(
         role: true,
         canCRUD: true,
         canApprove: true,
+        canViewGallery: true,
         createdAt: true,
         updatedAt: true,
       },

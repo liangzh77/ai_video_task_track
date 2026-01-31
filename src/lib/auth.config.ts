@@ -29,7 +29,9 @@ export const authConfig: NextAuthConfig = {
       }
 
       if (!isLoggedIn && (isAdminPage || isDashboardPage || isGalleryPage)) {
-        return false // Redirect to login
+        const loginUrl = new URL('/login', nextUrl.origin)
+        loginUrl.searchParams.set('callbackUrl', nextUrl.pathname + nextUrl.search)
+        return Response.redirect(loginUrl)
       }
 
       if (isAdminPage && !isAdmin) {
@@ -53,6 +55,7 @@ export const authConfig: NextAuthConfig = {
         token.role = user.role
         token.canCRUD = user.canCRUD
         token.canApprove = user.canApprove
+        token.canViewGallery = user.canViewGallery
       }
       return token
     },
@@ -63,6 +66,7 @@ export const authConfig: NextAuthConfig = {
         session.user.role = token.role as string
         session.user.canCRUD = token.canCRUD as boolean
         session.user.canApprove = token.canApprove as boolean
+        session.user.canViewGallery = token.canViewGallery as boolean
       }
       return session
     },

@@ -19,14 +19,15 @@ enum MediaType {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  username   String   @unique
-  password   String
-  role       Role     @default(USER)
-  canCRUD    Boolean  @default(false)
-  canApprove Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id             String   @id @default(cuid())
+  username       String   @unique
+  password       String
+  role           Role     @default(USER)
+  canCRUD        Boolean  @default(false)
+  canApprove     Boolean  @default(false)
+  canViewGallery Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   submittedTasks Task[] @relation("TaskSubmitter")
   createdTasks   Task[] @relation("TaskCreator")

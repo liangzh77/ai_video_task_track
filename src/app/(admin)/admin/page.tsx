@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { UserPermissions } from '@/components/admin/user-permissions'
 import { ResetPasswordButton } from '@/components/admin/reset-password-button'
+import { DeleteUserButton } from '@/components/admin/delete-user-button'
 import type { User } from '@/types/api'
 
 export default function AdminPage() {
@@ -30,10 +31,14 @@ export default function AdminPage() {
     fetchUsers()
   }, [])
 
-  const handlePermissionChange = (userId: string, canCRUD: boolean, canApprove: boolean) => {
+  const handlePermissionChange = (userId: string, field: 'canCRUD' | 'canApprove' | 'canViewGallery', value: boolean) => {
     setUsers(users.map(user =>
-      user.id === userId ? { ...user, canCRUD, canApprove } : user
+      user.id === userId ? { ...user, [field]: value } : user
     ))
+  }
+
+  const handleUserDeleted = (userId: string) => {
+    setUsers(users.filter(user => user.id !== userId))
   }
 
   if (isLoading) {
@@ -67,6 +72,7 @@ export default function AdminPage() {
                   <th className="text-left py-3 px-4 font-medium text-gray-700">角色</th>
                   <th className="text-center py-3 px-4 font-medium text-gray-700">CRUD 权限</th>
                   <th className="text-center py-3 px-4 font-medium text-gray-700">审批权限</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-700">Gallery 权限</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">注册时间</th>
                   <th className="text-center py-3 px-4 font-medium text-gray-700">操作</th>
                 </tr>
@@ -94,8 +100,8 @@ export default function AdminPage() {
                         type="canCRUD"
                         enabled={user.canCRUD}
                         disabled={user.role === 'ADMIN'}
-                        onPermissionChange={(canCRUD) =>
-                          handlePermissionChange(user.id, canCRUD, user.canApprove)
+                        onPermissionChange={(value) =>
+                          handlePermissionChange(user.id, 'canCRUD', value)
                         }
                       />
                     </td>
@@ -105,8 +111,19 @@ export default function AdminPage() {
                         type="canApprove"
                         enabled={user.canApprove}
                         disabled={user.role === 'ADMIN'}
-                        onPermissionChange={(canApprove) =>
-                          handlePermissionChange(user.id, user.canCRUD, canApprove)
+                        onPermissionChange={(value) =>
+                          handlePermissionChange(user.id, 'canApprove', value)
+                        }
+                      />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <UserPermissions
+                        userId={user.id}
+                        type="canViewGallery"
+                        enabled={user.canViewGallery}
+                        disabled={user.role === 'ADMIN'}
+                        onPermissionChange={(value) =>
+                          handlePermissionChange(user.id, 'canViewGallery', value)
                         }
                       />
                     </td>
@@ -115,7 +132,14 @@ export default function AdminPage() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       {user.role !== 'ADMIN' && (
-                        <ResetPasswordButton userId={user.id} username={user.username} />
+                        <div className="flex items-center justify-center gap-2">
+                          <ResetPasswordButton userId={user.id} username={user.username} />
+                          <DeleteUserButton
+                            userId={user.id}
+                            username={user.username}
+                            onDeleted={() => handleUserDeleted(user.id)}
+                          />
+                        </div>
                       )}
                     </td>
                   </tr>

@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -67,11 +69,12 @@ export default function RegisterPage() {
 
       if (result?.error) {
         setError('注册成功但自动登录失败，请手动登录')
-        router.push('/login')
+        router.push(callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login')
         return
       }
 
-      router.push('/dashboard')
+      // Use callbackUrl if provided, otherwise go to dashboard
+      router.push(callbackUrl || '/dashboard')
     } catch {
       setError('注册时发生错误')
       setIsLoading(false)
@@ -158,7 +161,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-600">
             已有账号？{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-500">
+            <Link href={callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login'} className="text-blue-600 hover:text-blue-500">
               登录
             </Link>
           </p>
