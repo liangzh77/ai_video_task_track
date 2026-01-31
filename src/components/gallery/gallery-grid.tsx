@@ -8,9 +8,10 @@ interface GalleryGridProps {
   canEdit: boolean
   onItemEdit: (item: GalleryItem) => void
   onItemDelete: (id: string) => void
+  onItemClick: (item: GalleryItem, playableUrl: string | null) => void
 }
 
-export function GalleryGrid({ items, canEdit, onItemEdit, onItemDelete }: GalleryGridProps) {
+export function GalleryGrid({ items, canEdit, onItemEdit, onItemDelete, onItemClick }: GalleryGridProps) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -32,6 +33,7 @@ export function GalleryGrid({ items, canEdit, onItemEdit, onItemDelete }: Galler
           canEdit={canEdit}
           onEdit={() => onItemEdit(item)}
           onDelete={() => onItemDelete(item.id)}
+          onClick={(playableUrl) => onItemClick(item, playableUrl)}
         />
       ))}
     </div>

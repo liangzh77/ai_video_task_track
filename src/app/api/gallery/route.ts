@@ -38,6 +38,8 @@ export async function GET(request: Request) {
     const search = searchParams.get('search') || ''
     const tagsParam = searchParams.get('tags') || ''
     const typeParam = searchParams.get('type') as 'IMAGE' | 'VIDEO' | null
+    const creatorId = searchParams.get('creatorId') || ''
+    const sortOrder = searchParams.get('sortOrder') as 'asc' | 'desc' || 'desc'
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '20', 10)
 
@@ -49,6 +51,7 @@ export async function GET(request: Request) {
         search ? { prompt: { contains: search, mode: 'insensitive' as const } } : {},
         tags.length > 0 ? { tags: { some: { tag: { name: { in: tags } } } } } : {},
         typeParam ? { type: typeParam } : {},
+        creatorId ? { creatorId } : {},
       ],
     }
 
@@ -61,7 +64,7 @@ export async function GET(request: Request) {
           creator: { select: { id: true, username: true } },
           tags: { include: { tag: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: sortOrder },
         skip: (page - 1) * limit,
         take: limit,
       }),

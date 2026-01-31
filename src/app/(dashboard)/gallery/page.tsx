@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { GalleryGrid } from '@/components/gallery/gallery-grid'
-import { GalleryFilter } from '@/components/gallery/gallery-filter'
+import { GalleryFilter, type Creator, type SortOrder } from '@/components/gallery/gallery-filter'
 import { GalleryCardModal } from '@/components/gallery/gallery-card-modal'
+import { GalleryLightbox } from '@/components/gallery/gallery-lightbox'
 import type { GalleryItem, GalleryListResponse, MediaType, Tag, CreateGalleryItemRequest, UpdateGalleryItemRequest } from '@/types/api'
 
 export default function GalleryPage() {
@@ -14,6 +15,7 @@ export default function GalleryPage() {
   // 数据状态
   const [items, setItems] = useState<GalleryItem[]>([])
   const [tags, setTags] = useState<Tag[]>([])
+  const [creators, setCreators] = useState<Creator[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -23,10 +25,16 @@ export default function GalleryPage() {
   const [searchText, setSearchText] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedType, setSelectedType] = useState<MediaType | null>(null)
+  const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(null)
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
   // 弹窗状态
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<GalleryItem | undefined>(undefined)
+
+  // Lightbox 状态
+  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null)
+  const [lightboxPlayableUrl, setLightboxPlayableUrl] = useState<string | null>(null)
 
   // 加载标签
   const loadTags = useCallback(async () => {
@@ -41,6 +49,19 @@ export default function GalleryPage() {
     }
   }, [])
 
+  // 加载创作者
+  const loadCreators = useCallback(async () => {
+    try {
+      const res = await fetch('/api/gallery/creators')
+      if (res.ok) {
+        const data = await res.json()
+        setCreators(data.creators)
+      }
+    } catch (error) {
+      console.error('加载创作者失败:', error)
+    }
+  }, [])
+
   // 加载作品列表
   const loadItems = useCallback(async () => {
     setIsLoading(true)
@@ -49,6 +70,8 @@ export default function GalleryPage() {
       if (searchText) params.append('search', searchText)
       if (selectedTags.length > 0) params.append('tags', selectedTags.join(','))
       if (selectedType) params.append('type', selectedType)
+      if (selectedCreatorId) params.append('creatorId', selectedCreatorId)
+      params.append('sortOrder', sortOrder)
       params.append('page', page.toString())
       params.append('limit', '24')
 
@@ -64,12 +87,13 @@ export default function GalleryPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchText, selectedTags, selectedType, page])
+  }, [searchText, selectedTags, selectedType, selectedCreatorId, sortOrder, page])
 
   // 初始加载
   useEffect(() => {
     loadTags()
-  }, [loadTags])
+    loadCreators()
+  }, [loadTags, loadCreators])
 
   // 筛选变化时重新加载
   useEffect(() => {
@@ -131,6 +155,7 @@ export default function GalleryPage() {
     // 刷新数据
     await loadItems()
     await loadTags()
+    await loadCreators()
   }
 
   // 删除作品
@@ -142,10 +167,23 @@ export default function GalleryPage() {
       if (res.ok) {
         await loadItems()
         await loadTags()
+        await loadCreators()
       }
     } catch (error) {
       console.error('删除失败:', error)
     }
+  }
+
+  // 打开 Lightbox
+  const handleItemClick = (item: GalleryItem, playableUrl: string | null) => {
+    setLightboxItem(item)
+    setLightboxPlayableUrl(playableUrl)
+  }
+
+  // 关闭 Lightbox
+  const handleCloseLightbox = () => {
+    setLightboxItem(null)
+    setLightboxPlayableUrl(null)
   }
 
   return (
@@ -172,7 +210,10 @@ export default function GalleryPage() {
         searchText={searchText}
         selectedTags={selectedTags}
         selectedType={selectedType}
+        selectedCreatorId={selectedCreatorId}
+        sortOrder={sortOrder}
         availableTags={tags}
+        availableCreators={creators}
         onSearchChange={setSearchText}
         onTagsChange={(newTags) => {
           setSelectedTags(newTags)
@@ -180,6 +221,14 @@ export default function GalleryPage() {
         }}
         onTypeChange={(type) => {
           setSelectedType(type)
+          setPage(1)
+        }}
+        onCreatorChange={(creatorId) => {
+          setSelectedCreatorId(creatorId)
+          setPage(1)
+        }}
+        onSortOrderChange={(order) => {
+          setSortOrder(order)
           setPage(1)
         }}
       />
@@ -200,6 +249,7 @@ export default function GalleryPage() {
           canEdit={canEdit}
           onItemEdit={handleEdit}
           onItemDelete={handleDelete}
+          onItemClick={handleItemClick}
         />
       )}
 
@@ -234,6 +284,13 @@ export default function GalleryPage() {
         onClose={handleCloseModal}
         item={editingItem}
         onSave={handleSave}
+      />
+
+      {/* Lightbox 查看器 */}
+      <GalleryLightbox
+        item={lightboxItem}
+        playableUrl={lightboxPlayableUrl}
+        onClose={handleCloseLightbox}
       />
     </div>
   )

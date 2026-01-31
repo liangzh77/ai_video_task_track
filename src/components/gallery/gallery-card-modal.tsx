@@ -125,7 +125,7 @@ export function GalleryCardModal({ isOpen, onClose, item, onSave }: GalleryCardM
         const data = await response.json()
         setUrl(data.url)
       } else {
-        // 视频上传到腾讯 COS
+        // 视频通过服务端代理上传到腾讯 COS（避免 CORS 问题）
         const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
         if (!validTypes.includes(file.type)) {
           setError('不支持的视频格式')
@@ -139,46 +139,22 @@ export function GalleryCardModal({ isOpen, onClose, item, onSave }: GalleryCardM
           return
         }
 
-        // 获取预签名 URL
-        const presignRes = await fetch('/api/cos/presign', {
+        // 通过服务端代理上传
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/cos/upload', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            contentType: file.type,
-          }),
+          body: formData,
         })
 
-        if (!presignRes.ok) {
-          throw new Error('获取上传凭证失败')
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || '上传失败')
         }
 
-        const { uploadUrl, fileUrl, contentType } = await presignRes.json()
-
-        // 上传到 COS
-        const xhr = new XMLHttpRequest()
-        xhr.open('PUT', uploadUrl)
-        xhr.setRequestHeader('Content-Type', contentType || file.type)
-
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            setUploadProgress(Math.round((e.loaded / e.total) * 100))
-          }
-        }
-
-        await new Promise<void>((resolve, reject) => {
-          xhr.onload = () => {
-            if (xhr.status === 200) {
-              resolve()
-            } else {
-              reject(new Error(`上传失败: ${xhr.status}`))
-            }
-          }
-          xhr.onerror = () => reject(new Error('网络错误'))
-          xhr.send(file)
-        })
-
-        setUrl(fileUrl)
+        const data = await response.json()
+        setUrl(data.url)
       }
     } catch (err) {
       console.error('上传失败:', err)

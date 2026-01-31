@@ -25,25 +25,19 @@ export function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h1 className="text-xl font-semibold text-gray-900">任务跟踪系统</h1>
-            {/* 导航按钮 - 非管理员页面显示 */}
+            {/* 当前页面指示 - 非管理员页面显示 */}
             {!isAdminPage && session?.user?.role !== 'ADMIN' && (
               <nav className="flex gap-1">
-                <Link href="/dashboard">
-                  <Button
-                    variant={pathname === '/dashboard' ? 'primary' : 'ghost'}
-                    size="sm"
-                  >
+                {pathname === '/dashboard' && (
+                  <Button variant="primary" size="sm">
                     任务
                   </Button>
-                </Link>
-                <Link href="/gallery">
-                  <Button
-                    variant={pathname === '/gallery' ? 'primary' : 'ghost'}
-                    size="sm"
-                  >
+                )}
+                {pathname === '/gallery' && (
+                  <Button variant="primary" size="sm">
                     作品墙
                   </Button>
-                </Link>
+                )}
               </nav>
             )}
           </div>

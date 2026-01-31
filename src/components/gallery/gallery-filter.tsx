@@ -3,33 +3,51 @@
 import { useState, useEffect, useRef } from 'react'
 import type { MediaType, Tag } from '@/types/api'
 
+export interface Creator {
+  id: string
+  username: string
+  itemCount: number
+}
+
+export type SortOrder = 'desc' | 'asc'
+
 interface GalleryFilterProps {
   searchText: string
   selectedTags: string[]
   selectedType: MediaType | null
+  selectedCreatorId: string | null
+  sortOrder: SortOrder
   availableTags: Tag[]
+  availableCreators: Creator[]
   onSearchChange: (text: string) => void
   onTagsChange: (tags: string[]) => void
   onTypeChange: (type: MediaType | null) => void
+  onCreatorChange: (creatorId: string | null) => void
+  onSortOrderChange: (order: SortOrder) => void
 }
 
 export function GalleryFilter({
   searchText,
   selectedTags,
   selectedType,
+  selectedCreatorId,
+  sortOrder,
   availableTags,
+  availableCreators,
   onSearchChange,
   onTagsChange,
   onTypeChange,
+  onCreatorChange,
+  onSortOrderChange,
 }: GalleryFilterProps) {
-  const [showTagDropdown, setShowTagDropdown] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [showCreatorDropdown, setShowCreatorDropdown] = useState(false)
+  const creatorDropdownRef = useRef<HTMLDivElement>(null)
 
   // 点击外部关闭下拉菜单
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowTagDropdown(false)
+      if (creatorDropdownRef.current && !creatorDropdownRef.current.contains(event.target as Node)) {
+        setShowCreatorDropdown(false)
       }
     }
 
@@ -49,9 +67,13 @@ export function GalleryFilter({
     onSearchChange('')
     onTagsChange([])
     onTypeChange(null)
+    onCreatorChange(null)
+    onSortOrderChange('desc')
   }
 
-  const hasFilters = searchText || selectedTags.length > 0 || selectedType
+  const hasFilters = searchText || selectedTags.length > 0 || selectedType || selectedCreatorId || sortOrder !== 'desc'
+
+  const selectedCreator = availableCreators.find(c => c.id === selectedCreatorId)
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -99,74 +121,103 @@ export function GalleryFilter({
         </button>
       </div>
 
-      {/* 标签筛选 */}
-      <div className="relative" ref={dropdownRef}>
+      {/* 标签筛选 - 横排显示 */}
+      {availableTags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {availableTags.map(tag => (
+            <button
+              key={tag.id}
+              type="button"
+              onClick={() => toggleTag(tag.name)}
+              className={`px-2 py-1 text-sm rounded transition-colors ${
+                selectedTags.includes(tag.name)
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {tag.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 作者筛选 */}
+      <div className="relative" ref={creatorDropdownRef}>
         <button
           type="button"
-          onClick={() => setShowTagDropdown(!showTagDropdown)}
+          onClick={() => setShowCreatorDropdown(!showCreatorDropdown)}
           className={`px-3 py-2 border rounded-lg text-sm flex items-center gap-2 ${
-            selectedTags.length > 0
+            selectedCreatorId
               ? 'border-blue-500 bg-blue-50 text-blue-700'
               : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          标签
-          {selectedTags.length > 0 && (
-            <span className="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded-full">
-              {selectedTags.length}
-            </span>
-          )}
-          <svg className={`w-4 h-4 transition-transform ${showTagDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {selectedCreator ? selectedCreator.username : '作者'}
+          <svg className={`w-4 h-4 transition-transform ${showCreatorDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
 
-        {showTagDropdown && (
-          <div className="absolute top-full left-0 mt-1 w-56 max-h-64 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-            {availableTags.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-400">暂无标签</div>
-            ) : (
-              availableTags.map(tag => (
-                <button
-                  key={tag.id}
-                  type="button"
-                  onClick={() => toggleTag(tag.name)}
-                  className={`w-full px-3 py-2 text-sm text-left flex items-center justify-between hover:bg-gray-50 ${
-                    selectedTags.includes(tag.name) ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                  }`}
-                >
-                  <span>{tag.name}</span>
-                  <span className="text-xs text-gray-400">{tag.itemCount}</span>
-                </button>
-              ))
-            )}
+        {showCreatorDropdown && (
+          <div className="absolute top-full left-0 mt-1 w-48 max-h-64 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+            <button
+              type="button"
+              onClick={() => {
+                onCreatorChange(null)
+                setShowCreatorDropdown(false)
+              }}
+              className={`w-full px-3 py-2 text-sm text-left hover:bg-gray-50 ${
+                !selectedCreatorId ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+              }`}
+            >
+              全部作者
+            </button>
+            {availableCreators.map(creator => (
+              <button
+                key={creator.id}
+                type="button"
+                onClick={() => {
+                  onCreatorChange(creator.id)
+                  setShowCreatorDropdown(false)
+                }}
+                className={`w-full px-3 py-2 text-sm text-left flex items-center justify-between hover:bg-gray-50 ${
+                  selectedCreatorId === creator.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                }`}
+              >
+                <span>{creator.username}</span>
+                <span className="text-xs text-gray-400">{creator.itemCount}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* 已选标签 */}
-      {selectedTags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {selectedTags.map(tag => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-sm rounded"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => toggleTag(tag)}
-                className="hover:text-blue-900"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
+      {/* 排序 */}
+      <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => onSortOrderChange('desc')}
+          className={`px-3 py-2 text-sm flex items-center gap-1 ${sortOrder === 'desc' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+          </svg>
+          最新
+        </button>
+        <button
+          type="button"
+          onClick={() => onSortOrderChange('asc')}
+          className={`px-3 py-2 text-sm border-l border-gray-300 flex items-center gap-1 ${sortOrder === 'asc' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+          </svg>
+          最早
+        </button>
+      </div>
 
       {/* 清除筛选 */}
       {hasFilters && (

@@ -9,12 +9,14 @@ interface GalleryCardProps {
   canEdit: boolean
   onEdit: () => void
   onDelete: () => void
+  onClick: (playableUrl: string | null) => void
 }
 
-export function GalleryCard({ item, canEdit, onEdit, onDelete }: GalleryCardProps) {
+export function GalleryCard({ item, canEdit, onEdit, onDelete, onClick }: GalleryCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [playableUrl, setPlayableUrl] = useState<string | null>(null)
   const [isLoadingVideo, setIsLoadingVideo] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // 获取视频签名 URL
@@ -52,13 +54,43 @@ export function GalleryCard({ item, canEdit, onEdit, onDelete }: GalleryCardProp
     }
   }, [item.type, item.url])
 
+  // 悬停时播放视频
+  useEffect(() => {
+    if (item.type !== 'VIDEO' || !videoRef.current || !playableUrl) return
+
+    if (isHovering) {
+      videoRef.current.play().catch(() => {})
+    } else {
+      videoRef.current.pause()
+      videoRef.current.currentTime = 0
+    }
+  }, [isHovering, item.type, playableUrl])
+
   const handleDelete = () => {
     onDelete()
     setShowDeleteConfirm(false)
   }
 
+  const handleCardClick = () => {
+    if (showDeleteConfirm) return
+    onClick(playableUrl)
+  }
+
+  // 格式化时间
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    return `${month}月${day}日`
+  }
+
   return (
-    <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 group cursor-pointer">
+    <div
+      className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 group cursor-pointer"
+      onClick={handleCardClick}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
       {/* 媒体内容 */}
       {item.type === 'IMAGE' ? (
         <Image
@@ -79,19 +111,23 @@ export function GalleryCard({ item, canEdit, onEdit, onDelete }: GalleryCardProp
               src={playableUrl}
               className="w-full h-full object-cover"
               muted
+              loop
+              playsInline
               preload="metadata"
             />
           ) : (
             <span className="text-gray-400 text-sm">视频</span>
           )}
-          {/* 播放图标 */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+          {/* 播放图标 - 悬停时隐藏 */}
+          {!isHovering && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -117,6 +153,18 @@ export function GalleryCard({ item, canEdit, onEdit, onDelete }: GalleryCardProp
             )}
           </div>
         )}
+      </div>
+
+      {/* 作者信息 - 左上角 */}
+      {item.creator && (
+        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/50 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+          {item.creator.username}
+        </div>
+      )}
+
+      {/* 时间 - 右下角 */}
+      <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/50 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+        {formatDate(item.createdAt)}
       </div>
 
       {/* 操作按钮 */}
