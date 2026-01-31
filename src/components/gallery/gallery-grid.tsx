@@ -6,12 +6,13 @@ import { GalleryCard } from './gallery-card'
 interface GalleryGridProps {
   items: GalleryItem[]
   canEdit: boolean
+  columns: number
   onItemEdit: (item: GalleryItem) => void
   onItemDelete: (id: string) => void
   onItemClick: (item: GalleryItem, playableUrl: string | null) => void
 }
 
-export function GalleryGrid({ items, canEdit, onItemEdit, onItemDelete, onItemClick }: GalleryGridProps) {
+export function GalleryGrid({ items, canEdit, columns, onItemEdit, onItemDelete, onItemClick }: GalleryGridProps) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -25,7 +26,12 @@ export function GalleryGrid({ items, canEdit, onItemEdit, onItemDelete, onItemCl
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    <div
+      className="grid gap-4"
+      style={{
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+      }}
+    >
       {items.map(item => (
         <GalleryCard
           key={item.id}

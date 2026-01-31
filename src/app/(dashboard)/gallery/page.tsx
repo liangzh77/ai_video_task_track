@@ -37,6 +37,29 @@ export default function GalleryPage() {
   const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null)
   const [lightboxPlayableUrl, setLightboxPlayableUrl] = useState<string | null>(null)
 
+  // 列数状态 (从 localStorage 读取，默认 6 列)
+  const [columns, setColumns] = useState(6)
+
+  // 初始化列数从 localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('gallery-columns')
+    if (saved) {
+      const num = parseInt(saved, 10)
+      if (num >= 2 && num <= 10) {
+        setColumns(num)
+      }
+    }
+  }, [])
+
+  // 调整列数
+  const adjustColumns = (delta: number) => {
+    setColumns(prev => {
+      const next = Math.min(10, Math.max(2, prev + delta))
+      localStorage.setItem('gallery-columns', next.toString())
+      return next
+    })
+  }
+
   // 加载标签
   const loadTags = useCallback(async () => {
     try {
@@ -256,9 +279,30 @@ export default function GalleryPage() {
         }}
       />
 
-      {/* 统计信息 */}
-      <div className="text-sm text-gray-500">
-        共 {total} 个作品
+      {/* 统计信息和列数控制 */}
+      <div className="flex items-center gap-4 text-sm text-gray-500">
+        <span>共 {total} 个作品</span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => adjustColumns(-1)}
+            disabled={columns <= 2}
+            className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="减少每行卡片数"
+          >
+            −
+          </button>
+          <span className="w-6 text-center">{columns}</span>
+          <button
+            type="button"
+            onClick={() => adjustColumns(1)}
+            disabled={columns >= 10}
+            className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="增加每行卡片数"
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {/* 作品网格 */}
@@ -270,6 +314,7 @@ export default function GalleryPage() {
         <GalleryGrid
           items={items}
           canEdit={canEdit}
+          columns={columns}
           onItemEdit={handleEdit}
           onItemDelete={handleDelete}
           onItemClick={handleItemClick}
