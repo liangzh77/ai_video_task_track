@@ -260,7 +260,6 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
               className="max-w-full max-h-full object-contain"
               controls
               autoPlay={!needSyncPlay}
-              loop
             />
           </div>
         )
@@ -274,7 +273,6 @@ export function GalleryLightbox({ item, playableUrl, onClose }: GalleryLightboxP
           className="max-w-[90vw] max-h-[70vh]"
           controls
           autoPlay={!needSyncPlay}
-          loop
         />
       )
     }

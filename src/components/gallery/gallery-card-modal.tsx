@@ -253,12 +253,18 @@ export function GalleryCardModal({ isOpen, onClose, item, onSave }: GalleryCardM
     try {
       if (isEditMode) {
         // 编辑模式
-        await onSave({
+        const updateData: UpdateGalleryItemRequest = {
           prompt,
           tags,
           sourceUrl: sourceMedia.url || null,
           sourceType: sourceMedia.type,
-        } as UpdateGalleryItemRequest)
+        }
+        // 如果生成结果有变化，也更新
+        if (resultMedia.url && resultMedia.url !== item?.url) {
+          updateData.url = resultMedia.url
+          updateData.type = resultMedia.type!
+        }
+        await onSave(updateData)
       } else {
         // 创建模式
         await onSave({
@@ -417,8 +423,8 @@ export function GalleryCardModal({ isOpen, onClose, item, onSave }: GalleryCardM
                 </svg>
               </div>
 
-              {/* 右侧：结果（必填，编辑模式不可更改） */}
-              {renderMediaArea(resultMedia, setResultMedia, resultFileInputRef, '生成结果', true, !isEditMode)}
+              {/* 右侧：结果（必填） */}
+              {renderMediaArea(resultMedia, setResultMedia, resultFileInputRef, '生成结果', true, true)}
             </div>
             <p className="text-xs text-gray-400 mt-2">
               左侧原始素材可选，右侧生成结果必填。如果有原始素材，查看时会并排展示对比效果。

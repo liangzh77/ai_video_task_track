@@ -80,7 +80,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { prompt, tags, sourceUrl, sourceType } = body
+    const { prompt, tags, sourceUrl, sourceType, url, type } = body
 
     // 检查作品是否存在
     const existing = await prisma.galleryItem.findUnique({
@@ -96,10 +96,21 @@ export async function PATCH(
       return NextResponse.json({ error: '原始素材类型无效' }, { status: 400 })
     }
 
+    // 验证 type（如果提供）
+    if (type !== undefined && !['IMAGE', 'VIDEO'].includes(type)) {
+      return NextResponse.json({ error: '类型无效' }, { status: 400 })
+    }
+
     // 使用事务更新作品和标签
     const item = await prisma.$transaction(async (tx) => {
       // 更新基本信息
-      const updateData: { prompt?: string; sourceUrl?: string | null; sourceType?: 'IMAGE' | 'VIDEO' | null } = {}
+      const updateData: {
+        prompt?: string
+        sourceUrl?: string | null
+        sourceType?: 'IMAGE' | 'VIDEO' | null
+        url?: string
+        type?: 'IMAGE' | 'VIDEO'
+      } = {}
       if (prompt !== undefined) {
         updateData.prompt = prompt
       }
@@ -108,6 +119,12 @@ export async function PATCH(
       }
       if (sourceType !== undefined) {
         updateData.sourceType = sourceType
+      }
+      if (url !== undefined) {
+        updateData.url = url
+      }
+      if (type !== undefined) {
+        updateData.type = type
       }
 
       if (Object.keys(updateData).length > 0) {

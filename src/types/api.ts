@@ -185,4 +185,6 @@ export interface UpdateGalleryItemRequest {
   tags?: string[]
   sourceUrl?: string | null  // 原始素材URL
   sourceType?: MediaType | null  // 原始素材类型
+  url?: string  // 生成结果URL（替换时使用）
+  type?: MediaType  // 生成结果类型（替换时使用）
 }
