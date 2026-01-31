@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Explicitly specify source paths to avoid Windows glob bug */
+@source "../**/*.tsx";
+@source "../**/*.ts";
+@source "../../components/**/*.tsx";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
