@@ -45,7 +45,7 @@ export default function GalleryPage() {
     const saved = localStorage.getItem('gallery-columns')
     if (saved) {
       const num = parseInt(saved, 10)
-      if (num >= 2 && num <= 10) {
+      if (num >= 1 && num <= 30) {
         setColumns(num)
       }
     }
@@ -54,7 +54,7 @@ export default function GalleryPage() {
   // 调整列数
   const adjustColumns = (delta: number) => {
     setColumns(prev => {
-      const next = Math.min(10, Math.max(2, prev + delta))
+      const next = Math.min(30, Math.max(1, prev + delta))
       localStorage.setItem('gallery-columns', next.toString())
       return next
     })
@@ -286,7 +286,7 @@ export default function GalleryPage() {
           <button
             type="button"
             onClick={() => adjustColumns(-1)}
-            disabled={columns <= 2}
+            disabled={columns <= 1}
             className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
             title="减少每行卡片数"
           >
@@ -296,7 +296,7 @@ export default function GalleryPage() {
           <button
             type="button"
             onClick={() => adjustColumns(1)}
-            disabled={columns >= 10}
+            disabled={columns >= 30}
             className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
             title="增加每行卡片数"
           >
