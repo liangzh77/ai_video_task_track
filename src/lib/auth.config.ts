@@ -12,6 +12,7 @@ export const authConfig: NextAuthConfig = {
       const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')
       const isAdminPage = nextUrl.pathname.startsWith('/admin')
       const isDashboardPage = nextUrl.pathname.startsWith('/dashboard')
+      const isGalleryPage = nextUrl.pathname.startsWith('/gallery')
       const isPublicRoute = nextUrl.pathname === '/'
 
       // Helper function to create redirect URL
@@ -27,7 +28,7 @@ export const authConfig: NextAuthConfig = {
         return true
       }
 
-      if (!isLoggedIn && (isAdminPage || isDashboardPage)) {
+      if (!isLoggedIn && (isAdminPage || isDashboardPage || isGalleryPage)) {
         return false // Redirect to login
       }
 
@@ -35,7 +36,7 @@ export const authConfig: NextAuthConfig = {
         return createRedirectUrl('/dashboard')
       }
 
-      if (isDashboardPage && isAdmin) {
+      if ((isDashboardPage || isGalleryPage) && isAdmin) {
         return createRedirectUrl('/admin')
       }
 

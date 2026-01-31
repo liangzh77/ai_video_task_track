@@ -13,6 +13,11 @@ enum Role {
   USER
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
 model User {
   id         String   @id @default(cuid())
   username   String   @unique
@@ -25,6 +30,7 @@ model User {
 
   submittedTasks Task[] @relation("TaskSubmitter")
   createdTasks   Task[] @relation("TaskCreator")
+  galleryItems   GalleryItem[] @relation("GalleryItemCreator")
 
   @@map("users")
 }
@@ -97,4 +103,45 @@ model DailyMetrics {
   @@index([taskId])
   @@index([date])
   @@map("daily_metrics")
+}
+
+// Gallery 作品墙
+model GalleryItem {
+  id        String    @id @default(cuid())
+  type      MediaType
+  url       String
+  prompt    String    @default("")
+  creatorId String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  creator User?            @relation("GalleryItemCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  tags    GalleryItemTag[]
+
+  @@index([creatorId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("gallery_items")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  items GalleryItemTag[]
+
+  @@map("tags")
+}
+
+model GalleryItemTag {
+  galleryItemId String
+  tagId         String
+
+  galleryItem GalleryItem @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+  tag         Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([galleryItemId, tagId])
+  @@index([tagId])
+  @@map("gallery_item_tags")
 }

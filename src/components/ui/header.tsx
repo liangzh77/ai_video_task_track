@@ -2,22 +2,51 @@
 
 import { useState } from 'react'
 import { signOut, useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from './button'
 import { ChangePasswordDialog } from '@/components/user/change-password-dialog'
 
 export function Header() {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const [showChangePassword, setShowChangePassword] = useState(false)
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' })
   }
 
+  // 判断当前页面是否为管理员页面
+  const isAdminPage = pathname?.startsWith('/admin')
+
   return (
     <>
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">任务跟踪系统</h1>
+          <div className="flex items-center gap-6">
+            <h1 className="text-xl font-semibold text-gray-900">任务跟踪系统</h1>
+            {/* 导航按钮 - 非管理员页面显示 */}
+            {!isAdminPage && session?.user?.role !== 'ADMIN' && (
+              <nav className="flex gap-1">
+                <Link href="/dashboard">
+                  <Button
+                    variant={pathname === '/dashboard' ? 'primary' : 'ghost'}
+                    size="sm"
+                  >
+                    任务
+                  </Button>
+                </Link>
+                <Link href="/gallery">
+                  <Button
+                    variant={pathname === '/gallery' ? 'primary' : 'ghost'}
+                    size="sm"
+                  >
+                    作品墙
+                  </Button>
+                </Link>
+              </nav>
+            )}
+          </div>
           {session?.user && (
             <div className="flex items-center gap-2 sm:gap-4">
               <span className="text-sm text-gray-600">

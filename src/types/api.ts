@@ -131,3 +131,50 @@ export interface ReorderRequest {
 export interface TaskReorderRequest extends ReorderRequest {
   templateId: string
 }
+
+// Gallery 作品墙
+export type MediaType = 'IMAGE' | 'VIDEO'
+
+export interface Tag {
+  id: string
+  name: string
+  itemCount?: number
+}
+
+export interface GalleryItem {
+  id: string
+  type: MediaType
+  url: string
+  prompt: string
+  creator: Pick<User, 'id' | 'username'> | null
+  tags: Tag[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface GalleryListResponse {
+  items: GalleryItem[]
+  total: number
+  page: number
+  totalPages: number
+}
+
+export interface GalleryFilterParams {
+  search?: string
+  tags?: string[]
+  type?: MediaType
+  page?: number
+  limit?: number
+}
+
+export interface CreateGalleryItemRequest {
+  type: MediaType
+  url: string
+  prompt: string
+  tags: string[]
+}
+
+export interface UpdateGalleryItemRequest {
+  prompt?: string
+  tags?: string[]
+}
