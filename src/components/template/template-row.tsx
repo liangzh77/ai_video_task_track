@@ -14,6 +14,7 @@ interface TemplateRowProps {
   canEdit?: boolean
   onDelete?: (templateId: string) => Promise<void>
   onTemplateUpdate?: (templateId: string, updates: Partial<Template>) => void
+  cardSize?: number
 }
 
 export function TemplateRow({
@@ -21,6 +22,7 @@ export function TemplateRow({
   canEdit = false,
   onDelete,
   onTemplateUpdate,
+  cardSize,
 }: TemplateRowProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -381,11 +383,13 @@ export function TemplateRow({
             disabled={!canEdit}
             draggableImages={canEdit}
             isSaving={isSaving}
+            cardSize={cardSize}
             endSlot={
               <VideoItem
                 videoUrl={template.videoUrl}
                 onUpdate={updateVideoUrl}
                 disabled={!canEdit}
+                cardSize={cardSize}
               />
             }
           />

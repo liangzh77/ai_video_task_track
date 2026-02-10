@@ -162,6 +162,7 @@ function SortableTemplateItem({
             canEdit={canEdit}
             onDelete={onDeleteTemplate}
             onTemplateUpdate={onTemplateUpdate}
+            cardSize={cardSize}
           />
         </div>
       </div>
