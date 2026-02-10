@@ -349,30 +349,95 @@ export function TemplateRow({
               onKeyDown={handleNameKeyDown}
               className="h-7 text-sm font-semibold"
             />
+          ) : cardSize && cardSize <= 20 ? (
+            /* 超小尺寸：标题 + 备注 + 批准/提交 在同一行 */
+            <div className="flex items-center gap-1 overflow-hidden whitespace-nowrap">
+              <h3
+                className={`text-sm font-semibold text-blue-900 flex-shrink-0 ${
+                  canEdit ? 'cursor-pointer hover:bg-blue-200 px-1 rounded transition-colors' : ''
+                }`}
+                onClick={() => canEdit && setIsEditingName(true)}
+                title={template.name}
+              >
+                {truncateText(template.name)}
+              </h3>
+              <span className="text-xs text-gray-400 flex-shrink-0">
+                <EditableField
+                  value={template.notes}
+                  onSave={updateNotes}
+                  disabled={!canEdit}
+                  placeholder="-"
+                />
+              </span>
+              {template.tasks && template.tasks.length > 0 && (
+                <span className="text-xs flex gap-1 flex-shrink-0">
+                  <span className="text-green-600">{template.tasks.filter(t => t.isApproved).length}</span>
+                  <span className="text-blue-600">{template.tasks.filter(t => t.isSubmitted).length}</span>
+                </span>
+              )}
+            </div>
           ) : (
-            <h3
-              className={`text-sm font-semibold text-blue-900 overflow-hidden whitespace-nowrap ${
-                canEdit ? 'cursor-pointer hover:bg-blue-200 px-1 rounded transition-colors' : ''
-              }`}
-              onClick={() => canEdit && setIsEditingName(true)}
-              title={template.name}
-            >
-              {template.name}
-            </h3>
+            <>
+              <h3
+                className={`text-sm font-semibold text-blue-900 overflow-hidden whitespace-nowrap ${
+                  canEdit ? 'cursor-pointer hover:bg-blue-200 px-1 rounded transition-colors' : ''
+                }`}
+                onClick={() => canEdit && setIsEditingName(true)}
+                title={template.name}
+              >
+                {template.name}
+              </h3>
+              {cardSize && cardSize <= 40 ? (
+                /* 小尺寸：备注 + 批准/提交 在同一行 */
+                <div
+                  className="text-xs text-gray-500 overflow-hidden whitespace-nowrap cursor-pointer hover:bg-blue-200 px-1 rounded flex items-center gap-1"
+                  title={template.notes || '点击添加备注'}
+                  onClick={() => canEdit && document.getElementById(`template-notes-${template.id}`)?.click()}
+                >
+                  <span className="text-gray-500">备注：</span>
+                  <EditableField
+                    value={template.notes}
+                    onSave={updateNotes}
+                    disabled={!canEdit}
+                    placeholder="-"
+                  />
+                  {template.tasks && template.tasks.length > 0 && (
+                    <span className="flex gap-1 flex-shrink-0 ml-1">
+                      <span className="text-green-600">{template.tasks.filter(t => t.isApproved).length}</span>
+                      <span className="text-blue-600">{template.tasks.filter(t => t.isSubmitted).length}</span>
+                    </span>
+                  )}
+                </div>
+              ) : (
+                /* 默认尺寸：备注单独一行，批准/提交单独一行 */
+                <>
+                  <div
+                    className="text-xs text-gray-500 overflow-hidden whitespace-nowrap cursor-pointer hover:bg-blue-200 px-1 rounded"
+                    title={template.notes || '点击添加备注'}
+                    onClick={() => canEdit && document.getElementById(`template-notes-${template.id}`)?.click()}
+                  >
+                    <span className="text-gray-500">备注：</span>
+                    <EditableField
+                      value={template.notes}
+                      onSave={updateNotes}
+                      disabled={!canEdit}
+                      placeholder="-"
+                    />
+                  </div>
+                  {template.tasks && template.tasks.length > 0 && (
+                    <div className="text-xs px-1 flex gap-2">
+                      <span className="text-green-600">
+                        批准 {template.tasks.filter(t => t.isApproved).length}
+                      </span>
+                      <span className="text-blue-600">
+                        提交 {template.tasks.filter(t => t.isSubmitted).length}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
           )}
-          <div
-            className="text-xs text-gray-500 overflow-hidden whitespace-nowrap cursor-pointer hover:bg-blue-200 px-1 rounded"
-            title={template.notes || '点击添加备注'}
-            onClick={() => canEdit && document.getElementById(`template-notes-${template.id}`)?.click()}
-          >
-            <span className="text-gray-500">备注：</span>
-            <EditableField
-              value={template.notes}
-              onSave={updateNotes}
-              disabled={!canEdit}
-              placeholder="-"
-            />
-          </div>
         </div>
 
         {/* 右侧：Items */}
