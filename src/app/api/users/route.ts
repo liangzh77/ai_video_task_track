@@ -21,6 +21,7 @@ export async function GET() {
         role: true,
         canCRUD: true,
         canApprove: true,
+        canViewGallery: true,
         createdAt: true,
         updatedAt: true,
       },

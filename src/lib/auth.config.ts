@@ -12,6 +12,7 @@ export const authConfig: NextAuthConfig = {
       const isAuthPage = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')
       const isAdminPage = nextUrl.pathname.startsWith('/admin')
       const isDashboardPage = nextUrl.pathname.startsWith('/dashboard')
+      const isGalleryPage = nextUrl.pathname.startsWith('/gallery')
       const isPublicRoute = nextUrl.pathname === '/'
 
       // Helper function to create redirect URL
@@ -27,15 +28,17 @@ export const authConfig: NextAuthConfig = {
         return true
       }
 
-      if (!isLoggedIn && (isAdminPage || isDashboardPage)) {
-        return false // Redirect to login
+      if (!isLoggedIn && (isAdminPage || isDashboardPage || isGalleryPage)) {
+        const loginUrl = new URL('/login', nextUrl.origin)
+        loginUrl.searchParams.set('callbackUrl', nextUrl.pathname + nextUrl.search)
+        return Response.redirect(loginUrl)
       }
 
       if (isAdminPage && !isAdmin) {
         return createRedirectUrl('/dashboard')
       }
 
-      if (isDashboardPage && isAdmin) {
+      if ((isDashboardPage || isGalleryPage) && isAdmin) {
         return createRedirectUrl('/admin')
       }
 
@@ -52,6 +55,7 @@ export const authConfig: NextAuthConfig = {
         token.role = user.role
         token.canCRUD = user.canCRUD
         token.canApprove = user.canApprove
+        token.canViewGallery = user.canViewGallery
       }
       return token
     },
@@ -62,6 +66,7 @@ export const authConfig: NextAuthConfig = {
         session.user.role = token.role as string
         session.user.canCRUD = token.canCRUD as boolean
         session.user.canApprove = token.canApprove as boolean
+        session.user.canViewGallery = token.canViewGallery as boolean
       }
       return session
     },

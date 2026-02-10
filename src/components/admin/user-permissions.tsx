@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 interface UserPermissionsProps {
   userId: string
-  type: 'canCRUD' | 'canApprove'
+  type: 'canCRUD' | 'canApprove' | 'canViewGallery'
   enabled: boolean
   disabled?: boolean
   onPermissionChange: (enabled: boolean) => void

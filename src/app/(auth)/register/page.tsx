@@ -1,14 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -67,11 +69,12 @@ export default function RegisterPage() {
 
       if (result?.error) {
         setError('注册成功但自动登录失败，请手动登录')
-        router.push('/login')
+        router.push(callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login')
         return
       }
 
-      router.push('/dashboard')
+      // Use callbackUrl if provided, otherwise go to dashboard
+      router.push(callbackUrl || '/dashboard')
     } catch {
       setError('注册时发生错误')
       setIsLoading(false)
@@ -79,91 +82,117 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            注册
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            创建新账号
-          </p>
-        </div>
+    <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
+      <div>
+        <h2 className="text-center text-3xl font-bold text-gray-900">
+          注册
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          创建新账号
+        </p>
+      </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">
-              {error}
-            </div>
-          )}
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {error && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">
+            {error}
+          </div>
+        )}
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                用户名
-              </label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                placeholder="3-20 个字符"
-                className="mt-1"
-                minLength={3}
-                maxLength={20}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                密码
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="6-50 个字符"
-                className="mt-1"
-                minLength={6}
-                maxLength={50}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                确认密码
-              </label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                placeholder="再次输入密码"
-                className="mt-1"
-              />
-            </div>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              用户名
+            </label>
+            <Input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder="3-20 个字符"
+              className="mt-1"
+              minLength={3}
+              maxLength={20}
+            />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? '注册中...' : '注册'}
-          </Button>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              密码
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="6-50 个字符"
+              className="mt-1"
+              minLength={6}
+              maxLength={50}
+            />
+          </div>
 
-          <p className="text-center text-sm text-gray-600">
-            已有账号？{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-500">
-              登录
-            </Link>
-          </p>
-        </form>
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              确认密码
+            </label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="再次输入密码"
+              className="mt-1"
+            />
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? '注册中...' : '注册'}
+        </Button>
+
+        <p className="text-center text-sm text-gray-600">
+          已有账号？{' '}
+          <Link href={callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login'} className="text-blue-600 hover:text-blue-500">
+            登录
+          </Link>
+        </p>
+      </form>
+    </div>
+  )
+}
+
+function RegisterFallback() {
+  return (
+    <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
+      <div>
+        <h2 className="text-center text-3xl font-bold text-gray-900">
+          注册
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          创建新账号
+        </p>
       </div>
+      <div className="flex justify-center py-8">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Suspense fallback={<RegisterFallback />}>
+        <RegisterForm />
+      </Suspense>
     </div>
   )
 }

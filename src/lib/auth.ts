@@ -41,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           role: user.role,
           canCRUD: user.canCRUD,
           canApprove: user.canApprove,
+          canViewGallery: user.canViewGallery,
         }
       },
     }),

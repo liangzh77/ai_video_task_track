@@ -1,10 +1,10 @@
 # ai_video_task_track 开发指南
 
-自动生成自功能计划。最后更新: 2025-12-12
+自动生成自功能计划。最后更新: 2025-01-31
 
 ## 活跃技术栈
 
-- **框架**: Next.js 14+ (App Router)
+- **框架**: Next.js 16 (App Router, Tailwind v4)
 - **语言**: TypeScript 5.x (严格模式)
 - **样式**: Tailwind CSS
 - **数据库**: PostgreSQL + Prisma ORM
@@ -40,11 +40,25 @@ prisma/
 specs/                      # 功能规格文档
 ```
 
+## 本地开发启动（重要）
+
+**Windows 环境下必须使用 `--webpack` 参数启动开发服务器：**
+
+```bash
+npx next dev --webpack
+```
+
+**原因：** Next.js 16 默认使用 Turbopack，但 Turbopack 在 Windows 上存在 bug，会尝试读取 `nul` 文件（Windows 保留设备名），导致崩溃。使用 `--webpack` 可以切换到 Webpack 编译器，避免此问题。
+
+**启动前确保：**
+1. 已配置 `.env` 文件（从 Vercel 获取环境变量）
+2. 已运行 `npx prisma generate` 生成 Prisma Client
+
 ## 常用命令
 
 ```bash
-# 开发
-npm run dev
+# 开发（Windows 必须加 --webpack）
+npx next dev --webpack
 
 # 构建
 npm run build

@@ -4,6 +4,7 @@ export interface User {
   role: 'ADMIN' | 'USER'
   canCRUD: boolean
   canApprove: boolean
+  canViewGallery: boolean
   createdAt: string
 }
 
@@ -128,6 +129,7 @@ export interface ImportCsvRequest {
 export interface UpdatePermissionsRequest {
   canCRUD?: boolean
   canApprove?: boolean
+  canViewGallery?: boolean
 }
 
 export interface ReorderRequest {
@@ -136,4 +138,59 @@ export interface ReorderRequest {
 
 export interface TaskReorderRequest extends ReorderRequest {
   templateId: string
+}
+
+// Gallery 作品墙
+export type MediaType = 'IMAGE' | 'VIDEO'
+
+export interface Tag {
+  id: string
+  name: string
+  itemCount?: number
+}
+
+export interface GalleryItem {
+  id: string
+  type: MediaType
+  url: string
+  sourceUrl: string | null  // 原始素材URL（对比展示时的"前"）
+  sourceType: MediaType | null  // 原始素材类型
+  prompt: string
+  creator: Pick<User, 'id' | 'username'> | null
+  tags: Tag[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface GalleryListResponse {
+  items: GalleryItem[]
+  total: number
+  page: number
+  totalPages: number
+}
+
+export interface GalleryFilterParams {
+  search?: string
+  tags?: string[]
+  type?: MediaType
+  page?: number
+  limit?: number
+}
+
+export interface CreateGalleryItemRequest {
+  type: MediaType
+  url: string
+  sourceUrl?: string | null  // 原始素材URL
+  sourceType?: MediaType | null  // 原始素材类型
+  prompt: string
+  tags: string[]
+}
+
+export interface UpdateGalleryItemRequest {
+  prompt?: string
+  tags?: string[]
+  sourceUrl?: string | null  // 原始素材URL
+  sourceType?: MediaType | null  // 原始素材类型
+  url?: string  // 生成结果URL（替换时使用）
+  type?: MediaType  // 生成结果类型（替换时使用）
 }
