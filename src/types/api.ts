@@ -19,6 +19,8 @@ export interface Template {
   videoUrl: string | null
   notes: string
   order: number
+  createdAt: string
+  updatedAt: string
   tasks: Task[]
 }
 
@@ -59,9 +61,12 @@ export interface Task {
   notes: string
   feedback: string
   submitter: Pick<User, 'id' | 'username'> | null
+  isSubmitted: boolean
   isApproved: boolean
   creator: Pick<User, 'id' | 'username'> | null
   order: number
+  createdAt: string
+  updatedAt: string
   dailyMetrics?: DailyMetrics[]
   metricsSummary?: MetricsSummary
 }
@@ -97,6 +102,7 @@ export interface UpdateTaskRequest {
   materialId?: string
   notes?: string
   feedback?: string
+  isSubmitted?: boolean
   isApproved?: boolean
   claimCreator?: boolean
   order?: number

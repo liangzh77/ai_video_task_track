@@ -1,17 +1,29 @@
 'use client'
 
-import { useState, useEffect, useCallback, DragEvent } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, DragEvent } from 'react'
 import { useSession } from 'next-auth/react'
 import { SortableTemplates } from '@/components/template/sortable-templates'
+import type { SortableTemplatesHandle } from '@/components/template/sortable-templates'
 import { AddTemplateButton } from '@/components/template/add-template-button'
 import { CsvImportModal, CsvRowData } from '@/components/csv-import-modal'
+import { SortFilterToolbar } from '@/components/template/sort-filter-toolbar'
+import type { SortField, SortDirection, FilterPreset, FilterField } from '@/components/template/sort-filter-toolbar'
 import type { Template, Task } from '@/types/api'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const sortableTemplatesRef = useRef<SortableTemplatesHandle>(null)
   const [templates, setTemplates] = useState<Template[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // 排序/过滤状态
+  const [sortField, setSortField] = useState<SortField>('order')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [filterPreset, setFilterPreset] = useState<FilterPreset>('all')
+  const [filterField, setFilterField] = useState<FilterField>('createdAt')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
 
   // CSV 导入状态
   const [isDragOverCsv, setIsDragOverCsv] = useState(false)
@@ -233,6 +245,73 @@ export default function DashboardPage() {
     setCsvFile(null)
   }
 
+  const handleSortFilterReset = () => {
+    setSortField('order')
+    setSortDirection('desc')
+    setFilterPreset('all')
+    setFilterField('createdAt')
+    setFilterDateFrom('')
+    setFilterDateTo('')
+  }
+
+  const isDndDisabled = sortField !== 'order' || filterPreset !== 'all'
+
+  const displayedTemplates = useMemo(() => {
+    let result = [...templates]
+
+    // 1. 过滤模板
+    if (filterPreset !== 'all') {
+      const now = new Date()
+      let fromDate: Date | null = null
+      let toDate: Date | null = null
+
+      if (filterPreset === 'today') {
+        fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+      } else if (filterPreset === 'thisWeek') {
+        const day = now.getDay() || 7
+        fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1)
+        toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+      } else if (filterPreset === 'thisMonth') {
+        fromDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+      } else if (filterPreset === 'custom') {
+        if (filterDateFrom) fromDate = new Date(filterDateFrom)
+        if (filterDateTo) toDate = new Date(filterDateTo + 'T23:59:59')
+      }
+
+      result = result.filter((t) => {
+        const dateValue = new Date(t[filterField])
+        if (fromDate && dateValue < fromDate) return false
+        if (toDate && dateValue > toDate) return false
+        return true
+      })
+    }
+
+    // 2. 排序模板
+    if (sortField !== 'order') {
+      result.sort((a, b) => {
+        const aVal = new Date(a[sortField]).getTime()
+        const bVal = new Date(b[sortField]).getTime()
+        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+      })
+    }
+
+    // 3. 排序各模板内的任务
+    if (sortField !== 'order') {
+      result = result.map((t) => ({
+        ...t,
+        tasks: [...(t.tasks || [])].sort((a, b) => {
+          const aVal = new Date(a[sortField]).getTime()
+          const bVal = new Date(b[sortField]).getTime()
+          return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        }),
+      }))
+    }
+
+    return result
+  }, [templates, sortField, sortDirection, filterPreset, filterField, filterDateFrom, filterDateTo])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -295,14 +374,39 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {templates.length === 0 ? (
+      <SortFilterToolbar
+        sortField={sortField}
+        sortDirection={sortDirection}
+        filterPreset={filterPreset}
+        filterField={filterField}
+        filterDateFrom={filterDateFrom}
+        filterDateTo={filterDateTo}
+        onSortFieldChange={setSortField}
+        onSortDirectionChange={setSortDirection}
+        onFilterPresetChange={setFilterPreset}
+        onFilterFieldChange={setFilterField}
+        onFilterDateFromChange={setFilterDateFrom}
+        onFilterDateToChange={setFilterDateTo}
+        onReset={handleSortFilterReset}
+        onCollapseAll={() => sortableTemplatesRef.current?.collapseAll()}
+        onExpandAll={() => sortableTemplatesRef.current?.expandAll()}
+      />
+
+      {displayedTemplates.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          暂无模板数据
-          {canEdit && <p className="mt-2 text-sm">点击&quot;添加模板&quot;开始创建</p>}
+          {templates.length === 0 ? (
+            <>
+              暂无模板数据
+              {canEdit && <p className="mt-2 text-sm">点击&quot;添加模板&quot;开始创建</p>}
+            </>
+          ) : (
+            <>当前筛选条件下无结果</>
+          )}
         </div>
       ) : (
         <SortableTemplates
-          templates={templates}
+          ref={sortableTemplatesRef}
+          templates={displayedTemplates}
           canEdit={canEdit}
           canApprove={session?.user?.canApprove}
           currentUserId={session?.user?.id}
@@ -314,6 +418,7 @@ export default function DashboardPage() {
           onDeleteTask={handleDeleteTask}
           onTaskUpdate={handleTaskUpdate}
           onTasksReorder={handleTasksReorder}
+          dragDisabled={isDndDisabled}
         />
       )}
 

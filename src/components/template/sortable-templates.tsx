@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -177,6 +177,7 @@ function SortableTemplateItem({
                 onTaskUpdate={onTaskUpdate}
                 onDeleteTask={onDeleteTask}
                 onReorder={(taskIds) => onTasksReorder(template.id, taskIds)}
+                dragDisabled={disabled}
               />
             </div>
           )}
@@ -205,9 +206,15 @@ interface SortableTemplatesProps {
   onDeleteTask: (taskId: string) => Promise<void>
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onTasksReorder: (templateId: string, taskIds: string[]) => Promise<void>
+  dragDisabled?: boolean
 }
 
-export function SortableTemplates({
+export interface SortableTemplatesHandle {
+  collapseAll: () => void
+  expandAll: () => void
+}
+
+export const SortableTemplates = forwardRef<SortableTemplatesHandle, SortableTemplatesProps>(function SortableTemplates({
   templates,
   canEdit,
   canApprove,
@@ -220,7 +227,8 @@ export function SortableTemplates({
   onDeleteTask,
   onTaskUpdate,
   onTasksReorder,
-}: SortableTemplatesProps) {
+  dragDisabled,
+}, ref) {
   const [collapsedTemplates, setCollapsedTemplates] = useState<Set<string>>(new Set())
 
   // 从 localStorage 加载折叠状态
@@ -263,6 +271,20 @@ export function SortableTemplates({
     }
   }
 
+  const collapseAll = useCallback(() => {
+    const allIds = new Set(templates.map((t) => t.id))
+    setCollapsedTemplates(allIds)
+    saveCollapsedTemplates(allIds)
+  }, [templates])
+
+  const expandAll = useCallback(() => {
+    const empty = new Set<string>()
+    setCollapsedTemplates(empty)
+    saveCollapsedTemplates(empty)
+  }, [])
+
+  useImperativeHandle(ref, () => ({ collapseAll, expandAll }), [collapseAll, expandAll])
+
   const templateIds = templates.map((t) => t.id)
 
   return (
@@ -287,7 +309,7 @@ export function SortableTemplates({
               onDeleteTask={onDeleteTask}
               onTaskUpdate={onTaskUpdate}
               onTasksReorder={onTasksReorder}
-              disabled={!canEdit}
+              disabled={!canEdit || !!dragDisabled}
               isCollapsed={collapsedTemplates.has(template.id)}
               onToggleCollapse={() => toggleCollapse(template.id)}
             />
@@ -296,4 +318,4 @@ export function SortableTemplates({
       </SortableContext>
     </DndContext>
   )
-}
+})

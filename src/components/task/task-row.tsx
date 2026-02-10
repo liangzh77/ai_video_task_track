@@ -76,6 +76,10 @@ export function TaskRow({
     }
   }
 
+  const handleSubmittedChange = async (checked: boolean) => {
+    await handleFieldSave('isSubmitted', checked)
+  }
+
   const handleApprovalChange = async (checked: boolean) => {
     await handleFieldSave('isApproved', checked)
   }
@@ -526,6 +530,26 @@ export function TaskRow({
                 <span className="text-green-600 font-medium">已批准</span>
               ) : (
                 <span className="text-yellow-600 font-medium">待批准</span>
+              )
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            {canEdit ? (
+              <div className="flex items-center gap-1">
+                <Checkbox
+                  checked={task.isSubmitted}
+                  onCheckedChange={handleSubmittedChange}
+                />
+                <span className={task.isSubmitted ? 'text-blue-600' : 'text-gray-400'}>
+                  {task.isSubmitted ? '已提交' : '待提交'}
+                </span>
+              </div>
+            ) : (
+              task.isSubmitted ? (
+                <span className="text-blue-600 font-medium">已提交</span>
+              ) : (
+                <span className="text-gray-400 font-medium">待提交</span>
               )
             )}
           </div>

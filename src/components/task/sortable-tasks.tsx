@@ -105,6 +105,7 @@ interface SortableTasksProps {
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onDeleteTask: (taskId: string) => Promise<void>
   onReorder: (taskIds: string[]) => Promise<void>
+  dragDisabled?: boolean
 }
 
 export function SortableTasks({
@@ -116,6 +117,7 @@ export function SortableTasks({
   onTaskUpdate,
   onDeleteTask,
   onReorder,
+  dragDisabled,
 }: SortableTasksProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -159,7 +161,7 @@ export function SortableTasks({
               currentUsername={currentUsername}
               onTaskUpdate={onTaskUpdate}
               onDeleteTask={onDeleteTask}
-              disabled={!canEdit}
+              disabled={!canEdit || !!dragDisabled}
             />
           ))}
         </div>

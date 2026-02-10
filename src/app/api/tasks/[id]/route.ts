@@ -67,6 +67,7 @@ export async function PATCH(
       feedback,
       claimSubmitter,
       removeSubmitter,
+      isSubmitted,
       isApproved,
       claimCreator,
       removeCreator,
@@ -90,7 +91,7 @@ export async function PATCH(
     // Check permissions based on what's being updated
     const isUpdatingCRUDFields = items !== undefined || videoUrl !== undefined ||
       materialId !== undefined || notes !== undefined || feedback !== undefined ||
-      order !== undefined || clearMetrics === true
+      typeof isSubmitted === 'boolean' || order !== undefined || clearMetrics === true
 
     const isUpdatingApproveFields = typeof isApproved === 'boolean' ||
       claimSubmitter === true || removeSubmitter === true ||
@@ -155,6 +156,9 @@ export async function PATCH(
     }
     if (removeSubmitter === true) {
       updateData.submitterId = null
+    }
+    if (typeof isSubmitted === 'boolean') {
+      updateData.isSubmitted = isSubmitted
     }
     if (typeof isApproved === 'boolean') {
       updateData.isApproved = isApproved

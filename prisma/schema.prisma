@@ -54,6 +54,7 @@ model Task {
   notes         String    @default("")
   feedback      String    @default("") // 反馈
   submitterId   String?   // 提交者ID
+  isSubmitted   Boolean   @default(false)
   isApproved    Boolean   @default(false)
   creatorId     String?
   order         Int       @default(0)
