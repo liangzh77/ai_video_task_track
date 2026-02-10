@@ -21,6 +21,11 @@ interface SortFilterToolbarProps {
   onReset: () => void
   onCollapseAll?: () => void
   onExpandAll?: () => void
+  cardSizeLabel?: string
+  onCardSizeDecrease?: () => void
+  onCardSizeIncrease?: () => void
+  canDecrease?: boolean
+  canIncrease?: boolean
 }
 
 const selectClass =
@@ -45,6 +50,11 @@ export function SortFilterToolbar({
   onReset,
   onCollapseAll,
   onExpandAll,
+  cardSizeLabel,
+  onCardSizeDecrease,
+  onCardSizeIncrease,
+  canDecrease = true,
+  canIncrease = true,
 }: SortFilterToolbarProps) {
   const isNonDefault = sortField !== 'order' || filterPreset !== 'all'
 
@@ -164,6 +174,30 @@ export function SortFilterToolbar({
         >
           全部展开
         </button>
+      )}
+
+      {/* 卡片尺寸 */}
+      {onCardSizeDecrease && onCardSizeIncrease && (
+        <>
+          <span className="text-gray-300">|</span>
+          <button
+            type="button"
+            onClick={onCardSizeDecrease}
+            disabled={!canDecrease}
+            className="w-6 h-6 flex items-center justify-center text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            -
+          </button>
+          <span className="text-xs text-gray-500 w-8 text-center">{cardSizeLabel}</span>
+          <button
+            type="button"
+            onClick={onCardSizeIncrease}
+            disabled={!canIncrease}
+            className="w-6 h-6 flex items-center justify-center text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            +
+          </button>
+        </>
       )}
     </div>
   )

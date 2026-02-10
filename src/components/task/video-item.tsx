@@ -7,9 +7,10 @@ interface VideoItemProps {
   videoUrl: string | null
   onUpdate: (videoUrl: string | null) => Promise<void>
   disabled?: boolean
+  cardSize?: number
 }
 
-export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemProps) {
+export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60 }: VideoItemProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -308,12 +309,13 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     return (
       <div
         className={`
-          relative h-[60px] w-[60px] flex-shrink-0 rounded border-2 border-dashed
+          relative flex-shrink-0 rounded border-2 border-dashed
           flex items-center justify-center text-center
           ${disabled ? 'border-gray-200 bg-gray-50 text-gray-300' :
             isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'}
           ${isUploading ? 'pointer-events-none' : ''}
         `}
+        style={{ height: cardSize, width: cardSize }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -344,9 +346,10 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
     <>
       <div
         className={`
-          relative h-[60px] min-w-[60px] flex-shrink-0 rounded border-2 overflow-hidden group flex items-center justify-center
+          relative flex-shrink-0 rounded border-2 overflow-hidden group flex items-center justify-center
           ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
         `}
+        style={{ height: cardSize, minWidth: cardSize }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -356,7 +359,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
       >
         {/* 视频缩略图 - 保持原始宽高比 */}
         {isLoadingVideo ? (
-          <div className="w-[60px] h-full flex items-center justify-center bg-gray-100">
+          <div className="h-full flex items-center justify-center bg-gray-100" style={{ width: cardSize }}>
             <span className="text-xs text-gray-400">...</span>
           </div>
         ) : playableUrl ? (
@@ -368,7 +371,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false }: VideoItemPro
             preload="metadata"
           />
         ) : (
-          <div className="w-[60px] h-full flex items-center justify-center bg-gray-100">
+          <div className="h-full flex items-center justify-center bg-gray-100" style={{ width: cardSize }}>
             <span className="text-xs text-gray-400">失败</span>
           </div>
         )}

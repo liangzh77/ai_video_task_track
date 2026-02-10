@@ -35,6 +35,7 @@ interface SortableItemProps {
   useNativeDrag?: boolean
   onNativeDragStart?: (index: number) => void
   onNativeDrop?: (targetIndex: number) => void
+  cardSize?: number
 }
 
 function SortableItem({
@@ -49,6 +50,7 @@ function SortableItem({
   useNativeDrag = false,
   onNativeDragStart,
   onNativeDrop,
+  cardSize = 60,
 }: SortableItemProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -310,13 +312,13 @@ function SortableItem({
       <>
       <div
         ref={useNativeDrag ? undefined : setNodeRef}
-        style={style}
         className={`
-          relative h-[60px] min-w-[60px] group flex-shrink-0 rounded border-2 overflow-hidden flex items-center justify-center
+          relative group flex-shrink-0 rounded border-2 overflow-hidden flex items-center justify-center
           ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
           ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
           ${isSaving ? 'pointer-events-none' : ''}
         `}
+        style={{ ...style, height: cardSize, minWidth: cardSize }}
         {...(useNativeDrag ? {} : { ...attributes, ...listeners })}
         draggable={draggable}
         onDragStart={handleNativeDragStart}
@@ -459,13 +461,13 @@ function SortableItem({
     <>
     <div
       ref={useNativeDrag ? undefined : setNodeRef}
-      style={style}
       className={`
-        relative h-[60px] w-[60px] group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
+        relative group flex-shrink-0 rounded border-2 overflow-hidden bg-gray-100
         ${isNativeDragOver ? 'border-blue-500 bg-blue-50' : ''}
         ${disabled ? '' : 'cursor-grab active:cursor-grabbing border-gray-200 hover:border-gray-300'}
         ${isSaving ? 'pointer-events-none' : ''}
       `}
+      style={{ ...style, height: cardSize, width: cardSize }}
       {...(isEditing || useNativeDrag ? {} : { ...attributes, ...listeners })}
       draggable={draggable && !isEditing}
       onDragStart={handleNativeDragStart}
@@ -625,6 +627,7 @@ interface SortableItemsProps {
   draggableImages?: boolean
   isSaving?: boolean
   endSlot?: React.ReactNode
+  cardSize?: number
 }
 
 export function SortableItems({
@@ -634,6 +637,7 @@ export function SortableItems({
   draggableImages = false,
   isSaving = false,
   endSlot,
+  cardSize = 60,
 }: SortableItemsProps) {
   // Track the dragging source index for native drag reordering
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null)
@@ -690,7 +694,7 @@ export function SortableItems({
   const useNativeDrag = draggableImages
 
   const itemsContent = (
-    <div className="flex gap-2 flex-wrap items-center min-h-[60px]">
+    <div className="flex gap-2 flex-wrap items-center" style={{ minHeight: cardSize }}>
       {items.map((item, index) => (
         <SortableItem
           key={`item-${index}`}
@@ -705,10 +709,11 @@ export function SortableItems({
           useNativeDrag={useNativeDrag}
           onNativeDragStart={setDragSourceIndex}
           onNativeDrop={handleNativeDrop}
+          cardSize={cardSize}
         />
       ))}
       {items.length === 0 && !disabled && (
-        <div className="flex items-center justify-center w-[60px] h-[60px] border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center">
+        <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded text-gray-400 text-xs text-center" style={{ width: cardSize, height: cardSize }}>
           拖拽
         </div>
       )}
@@ -718,7 +723,8 @@ export function SortableItems({
           size="sm"
           variant="outline"
           onClick={handleAddEmptyText}
-          className="h-[60px] px-3 whitespace-nowrap ml-auto text-xs"
+          className="px-3 whitespace-nowrap ml-auto text-xs"
+          style={{ height: cardSize }}
         >
           +文案
         </Button>

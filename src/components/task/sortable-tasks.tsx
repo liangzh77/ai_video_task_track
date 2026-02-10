@@ -29,6 +29,7 @@ interface SortableTaskItemProps {
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onDeleteTask: (taskId: string) => Promise<void>
   disabled?: boolean
+  cardSize?: number
 }
 
 function SortableTaskItem({
@@ -40,6 +41,7 @@ function SortableTaskItem({
   onTaskUpdate,
   onDeleteTask,
   disabled = false,
+  cardSize,
 }: SortableTaskItemProps) {
   const {
     attributes,
@@ -90,6 +92,7 @@ function SortableTaskItem({
           currentUsername={currentUsername}
           onTaskUpdate={onTaskUpdate}
           onDelete={onDeleteTask}
+          cardSize={cardSize}
         />
       </div>
     </div>
@@ -106,6 +109,7 @@ interface SortableTasksProps {
   onDeleteTask: (taskId: string) => Promise<void>
   onReorder: (taskIds: string[]) => Promise<void>
   dragDisabled?: boolean
+  cardSize?: number
 }
 
 export function SortableTasks({
@@ -118,6 +122,7 @@ export function SortableTasks({
   onDeleteTask,
   onReorder,
   dragDisabled,
+  cardSize,
 }: SortableTasksProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -162,6 +167,7 @@ export function SortableTasks({
               onTaskUpdate={onTaskUpdate}
               onDeleteTask={onDeleteTask}
               disabled={!canEdit || !!dragDisabled}
+              cardSize={cardSize}
             />
           ))}
         </div>

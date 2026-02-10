@@ -25,6 +25,38 @@ export default function DashboardPage() {
   const [filterDateFrom, setFilterDateFrom] = useState('')
   const [filterDateTo, setFilterDateTo] = useState('')
 
+  // 卡片尺寸状态
+  const CARD_SIZES = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+  const CARD_SIZE_KEY = 'card-size-index'
+  const [cardSizeIndex, setCardSizeIndex] = useState(() => {
+    if (typeof window === 'undefined') return 2
+    try {
+      const stored = localStorage.getItem(CARD_SIZE_KEY)
+      if (stored !== null) {
+        const idx = parseInt(stored, 10)
+        if (idx >= 0 && idx < CARD_SIZES.length) return idx
+      }
+    } catch { /* ignore */ }
+    return 2
+  })
+  const cardSize = CARD_SIZES[cardSizeIndex]
+
+  const handleCardSizeDecrease = () => {
+    setCardSizeIndex(prev => {
+      const next = Math.max(0, prev - 1)
+      localStorage.setItem(CARD_SIZE_KEY, String(next))
+      return next
+    })
+  }
+
+  const handleCardSizeIncrease = () => {
+    setCardSizeIndex(prev => {
+      const next = Math.min(CARD_SIZES.length - 1, prev + 1)
+      localStorage.setItem(CARD_SIZE_KEY, String(next))
+      return next
+    })
+  }
+
   // CSV 导入状态
   const [isDragOverCsv, setIsDragOverCsv] = useState(false)
   const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -390,6 +422,11 @@ export default function DashboardPage() {
         onReset={handleSortFilterReset}
         onCollapseAll={() => sortableTemplatesRef.current?.collapseAll()}
         onExpandAll={() => sortableTemplatesRef.current?.expandAll()}
+        cardSizeLabel={`${cardSize}`}
+        onCardSizeDecrease={handleCardSizeDecrease}
+        onCardSizeIncrease={handleCardSizeIncrease}
+        canDecrease={cardSizeIndex > 0}
+        canIncrease={cardSizeIndex < CARD_SIZES.length - 1}
       />
 
       {displayedTemplates.length === 0 ? (
@@ -419,6 +456,7 @@ export default function DashboardPage() {
           onTaskUpdate={handleTaskUpdate}
           onTasksReorder={handleTasksReorder}
           dragDisabled={isDndDisabled}
+          cardSize={cardSize}
         />
       )}
 

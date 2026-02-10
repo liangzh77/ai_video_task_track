@@ -18,6 +18,7 @@ interface TaskRowProps {
   currentUsername?: string
   onTaskUpdate?: (taskId: string, updates: Partial<Task>) => void
   onDelete?: (taskId: string) => Promise<void>
+  cardSize?: number
 }
 
 export function TaskRow({
@@ -27,6 +28,7 @@ export function TaskRow({
   currentUserId,
   onTaskUpdate,
   onDelete,
+  cardSize,
 }: TaskRowProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -429,6 +431,7 @@ export function TaskRow({
               disabled={!canEdit}
               draggableImages={true}
               isSaving={isSaving}
+              cardSize={cardSize}
               endSlot={
                 <VideoItem
                   videoUrl={task.videoUrl}
@@ -436,6 +439,7 @@ export function TaskRow({
                     await handleFieldSave('videoUrl', videoUrl)
                   }}
                   disabled={!canEdit}
+                  cardSize={cardSize}
                 />
               }
             />

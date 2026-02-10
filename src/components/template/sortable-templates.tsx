@@ -64,6 +64,7 @@ interface SortableTemplateItemProps {
   disabled?: boolean
   isCollapsed: boolean
   onToggleCollapse: () => void
+  cardSize?: number
 }
 
 function SortableTemplateItem({
@@ -81,6 +82,7 @@ function SortableTemplateItem({
   disabled = false,
   isCollapsed,
   onToggleCollapse,
+  cardSize,
 }: SortableTemplateItemProps) {
   const {
     attributes,
@@ -178,6 +180,7 @@ function SortableTemplateItem({
                 onDeleteTask={onDeleteTask}
                 onReorder={(taskIds) => onTasksReorder(template.id, taskIds)}
                 dragDisabled={disabled}
+                cardSize={cardSize}
               />
             </div>
           )}
@@ -207,6 +210,7 @@ interface SortableTemplatesProps {
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onTasksReorder: (templateId: string, taskIds: string[]) => Promise<void>
   dragDisabled?: boolean
+  cardSize?: number
 }
 
 export interface SortableTemplatesHandle {
@@ -228,6 +232,7 @@ export const SortableTemplates = forwardRef<SortableTemplatesHandle, SortableTem
   onTaskUpdate,
   onTasksReorder,
   dragDisabled,
+  cardSize,
 }, ref) {
   const [collapsedTemplates, setCollapsedTemplates] = useState<Set<string>>(new Set())
 
@@ -312,6 +317,7 @@ export const SortableTemplates = forwardRef<SortableTemplatesHandle, SortableTem
               disabled={!canEdit || !!dragDisabled}
               isCollapsed={collapsedTemplates.has(template.id)}
               onToggleCollapse={() => toggleCollapse(template.id)}
+              cardSize={cardSize}
             />
           ))}
         </div>
