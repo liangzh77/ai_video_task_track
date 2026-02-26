@@ -17,13 +17,41 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // 排序/过滤状态
-  const [sortField, setSortField] = useState<SortField>('order')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-  const [filterPreset, setFilterPreset] = useState<FilterPreset>('all')
-  const [filterField, setFilterField] = useState<FilterField>('createdAt')
-  const [filterDateFrom, setFilterDateFrom] = useState('')
-  const [filterDateTo, setFilterDateTo] = useState('')
+  // 排序/过滤状态（从 localStorage 恢复）
+  const SORT_FILTER_KEY = 'sort-filter-state'
+  const [sortField, setSortField] = useState<SortField>(() => {
+    if (typeof window === 'undefined') return 'order'
+    try { return (JSON.parse(localStorage.getItem(SORT_FILTER_KEY)!)?.sortField as SortField) || 'order' } catch { return 'order' }
+  })
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+    if (typeof window === 'undefined') return 'desc'
+    try { return (JSON.parse(localStorage.getItem(SORT_FILTER_KEY)!)?.sortDirection as SortDirection) || 'desc' } catch { return 'desc' }
+  })
+  const [filterPreset, setFilterPreset] = useState<FilterPreset>(() => {
+    if (typeof window === 'undefined') return 'all'
+    try { return (JSON.parse(localStorage.getItem(SORT_FILTER_KEY)!)?.filterPreset as FilterPreset) || 'all' } catch { return 'all' }
+  })
+  const [filterField, setFilterField] = useState<FilterField>(() => {
+    if (typeof window === 'undefined') return 'createdAt'
+    try { return (JSON.parse(localStorage.getItem(SORT_FILTER_KEY)!)?.filterField as FilterField) || 'createdAt' } catch { return 'createdAt' }
+  })
+  const [filterDateFrom, setFilterDateFrom] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    try { return JSON.parse(localStorage.getItem(SORT_FILTER_KEY)!)?.filterDateFrom || '' } catch { return '' }
+  })
+  const [filterDateTo, setFilterDateTo] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    try { return JSON.parse(localStorage.getItem(SORT_FILTER_KEY)!)?.filterDateTo || '' } catch { return '' }
+  })
+
+  // 排序/过滤状态变化时写入 localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(SORT_FILTER_KEY, JSON.stringify({
+        sortField, sortDirection, filterPreset, filterField, filterDateFrom, filterDateTo,
+      }))
+    } catch { /* ignore */ }
+  }, [sortField, sortDirection, filterPreset, filterField, filterDateFrom, filterDateTo])
 
   // 卡片尺寸状态
   const CARD_SIZES = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
@@ -284,6 +312,7 @@ export default function DashboardPage() {
     setFilterField('createdAt')
     setFilterDateFrom('')
     setFilterDateTo('')
+    try { localStorage.removeItem(SORT_FILTER_KEY) } catch { /* ignore */ }
   }
 
   const isDndDisabled = sortField !== 'order' || filterPreset !== 'all'
