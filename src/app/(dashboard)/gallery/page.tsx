@@ -22,12 +22,37 @@ export default function GalleryPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  // 筛选状态
-  const [searchText, setSearchText] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [selectedType, setSelectedType] = useState<MediaType | null>(null)
-  const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(null)
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+  // 筛选状态（从 localStorage 恢复）
+  const GALLERY_FILTER_KEY = 'gallery-filter-state'
+  const [searchText, setSearchText] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    try { return JSON.parse(localStorage.getItem(GALLERY_FILTER_KEY)!)?.searchText || '' } catch { return '' }
+  })
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try { return JSON.parse(localStorage.getItem(GALLERY_FILTER_KEY)!)?.selectedTags || [] } catch { return [] }
+  })
+  const [selectedType, setSelectedType] = useState<MediaType | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return JSON.parse(localStorage.getItem(GALLERY_FILTER_KEY)!)?.selectedType || null } catch { return null }
+  })
+  const [selectedCreatorId, setSelectedCreatorId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return JSON.parse(localStorage.getItem(GALLERY_FILTER_KEY)!)?.selectedCreatorId || null } catch { return null }
+  })
+  const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
+    if (typeof window === 'undefined') return 'desc'
+    try { return JSON.parse(localStorage.getItem(GALLERY_FILTER_KEY)!)?.sortOrder || 'desc' } catch { return 'desc' }
+  })
+
+  // 筛选状态变化时写入 localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(GALLERY_FILTER_KEY, JSON.stringify({
+        searchText, selectedTags, selectedType, selectedCreatorId, sortOrder,
+      }))
+    } catch { /* ignore */ }
+  }, [searchText, selectedTags, selectedType, selectedCreatorId, sortOrder])
 
   // 弹窗状态
   const [isModalOpen, setIsModalOpen] = useState(false)
