@@ -3,6 +3,12 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import crypto from 'crypto'
 
+const JSON_HEADERS = { 'Content-Type': 'application/json; charset=utf-8' }
+
+function jsonResponse(data: unknown, status: number = 200) {
+  return new NextResponse(JSON.stringify(data), { status, headers: JSON_HEADERS })
+}
+
 // COS 配置
 const COS_CONFIG = {
   SecretId: process.env.TENCENT_COS_SECRET_ID || '',
@@ -71,7 +77,7 @@ export async function POST(request: Request) {
   try {
     const { authenticated, error } = await authenticateRequest(request)
     if (!authenticated) {
-      return NextResponse.json({ error }, { status: 401 })
+      return jsonResponse({ error }, 401)
     }
 
     const formData = await request.formData()
@@ -82,11 +88,11 @@ export async function POST(request: Request) {
 
     // 校验必填字段
     if (!name || name.trim() === '') {
-      return NextResponse.json({ error: '模板名称(name)不能为空' }, { status: 400 })
+      return jsonResponse({ error: '模板名称(name)不能为空' }, 400)
     }
 
     if (!video && !videoUrl) {
-      return NextResponse.json({ error: '请提供视频文件(video)或视频链接(videoUrl)' }, { status: 400 })
+      return jsonResponse({ error: '请提供视频文件(video)或视频链接(videoUrl)' }, 400)
     }
 
     let finalVideoUrl = videoUrl || ''
@@ -95,14 +101,13 @@ export async function POST(request: Request) {
     if (video) {
       const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
       if (!validTypes.includes(video.type)) {
-        return NextResponse.json(
-          { error: `不支持的视频格式: ${video.type}，支持 mp4/webm/mov/avi` },
-          { status: 400 }
+        return jsonResponse(
+          { error: `不支持的视频格式: ${video.type}，支持 mp4/webm/mov/avi` }, 400
         )
       }
 
       if (video.size > 100 * 1024 * 1024) {
-        return NextResponse.json({ error: '视频大小不能超过 100MB' }, { status: 400 })
+        return jsonResponse({ error: '视频大小不能超过 100MB' }, 400)
       }
 
       const date = new Date().toISOString().split('T')[0]
@@ -126,7 +131,7 @@ export async function POST(request: Request) {
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text()
         console.error('COS 上传失败:', errorText)
-        return NextResponse.json({ error: '视频上传到 COS 失败' }, { status: 500 })
+        return jsonResponse({ error: '视频上传到 COS 失败' }, 500)
       }
 
       finalVideoUrl = cosUrl
@@ -149,7 +154,7 @@ export async function POST(request: Request) {
       })
     })
 
-    return NextResponse.json({
+    return jsonResponse({
       success: true,
       template: {
         id: template.id,
@@ -157,9 +162,9 @@ export async function POST(request: Request) {
         notes: template.notes,
         videoUrl: template.videoUrl,
       },
-    }, { status: 201 })
+    }, 201)
   } catch (error) {
     console.error('视频导入失败:', error)
-    return NextResponse.json({ error: '服务器错误' }, { status: 500 })
+    return jsonResponse({ error: '服务器错误' }, 500)
   }
 }
