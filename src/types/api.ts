@@ -36,6 +36,7 @@ export interface DailyMetrics {
   cpm: number // 平均千次展现费用(元)
   conversions: number // 转化数
   conversionCost: number // 转化成本
+  roi: number // ROI
   activations: number // 激活数
   dailyPayment: number // 计费当日付费金额
   materialScore: number // 素材评估
@@ -48,6 +49,7 @@ export interface MetricsSummary {
   avgClickRate: number // 点击率(%)
   avgCpm: number // 平均千次展现费用(元)
   totalConversions: number // 转化数
+  avgRoi: number // 平均ROI
   totalActivations: number // 激活数
   totalDailyPayment: number // 计费当日付费金额
   avgMaterialScore: number // 素材评估
@@ -120,6 +122,7 @@ export interface ImportCsvRequest {
     cpm: number
     conversions: number
     conversionCost: number
+    roi: number
     activations: number
     dailyPayment: number
     materialScore: number

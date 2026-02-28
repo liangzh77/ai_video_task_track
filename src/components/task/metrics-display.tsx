@@ -109,6 +109,11 @@ export function MetricsDisplay({ summary, dailyMetrics }: MetricsDisplayProps) {
         <span className="text-gray-500">
           转化:<span className="text-gray-900 ml-1">{formatNumber(summary.totalConversions)}</span>
         </span>
+        {summary.avgRoi > 0 && (
+          <span className="text-gray-500">
+            ROI:<span className="text-gray-900 ml-1">{summary.avgRoi.toFixed(2)}</span>
+          </span>
+        )}
         <span className="text-gray-500">
           激活:<span className="text-gray-900 ml-1">{formatNumber(summary.totalActivations)}</span>
         </span>
@@ -143,6 +148,7 @@ export function MetricsDisplay({ summary, dailyMetrics }: MetricsDisplayProps) {
                   <th className="text-right py-1 px-2 text-gray-500 font-medium">CPM</th>
                   <th className="text-right py-1 px-2 text-gray-500 font-medium">转化</th>
                   <th className="text-right py-1 px-2 text-gray-500 font-medium">转化成本</th>
+                  <th className="text-right py-1 px-2 text-gray-500 font-medium">ROI</th>
                   <th className="text-right py-1 px-2 text-gray-500 font-medium">激活</th>
                   <th className="text-right py-1 px-2 text-gray-500 font-medium">付费</th>
                   <th className="text-right py-1 px-2 text-gray-500 font-medium">评估</th>
@@ -159,6 +165,7 @@ export function MetricsDisplay({ summary, dailyMetrics }: MetricsDisplayProps) {
                     <td className="text-right py-1 px-2 text-gray-900">{formatMoney(metric.cpm)}</td>
                     <td className="text-right py-1 px-2 text-gray-900">{formatNumber(metric.conversions)}</td>
                     <td className="text-right py-1 px-2 text-gray-900">{formatMoney(metric.conversionCost)}</td>
+                    <td className="text-right py-1 px-2 text-gray-900">{metric.roi > 0 ? metric.roi.toFixed(2) : '-'}</td>
                     <td className="text-right py-1 px-2 text-gray-900">{formatNumber(metric.activations)}</td>
                     <td className="text-right py-1 px-2 text-gray-900">{formatMoney(metric.dailyPayment)}</td>
                     <td className="text-right py-1 px-2 text-gray-900">{metric.materialScore.toFixed(1)}</td>

@@ -93,6 +93,7 @@ model DailyMetrics {
   cpm            Float    @default(0) // 平均千次展现费用(元)
   conversions    Int      @default(0) // 转化数
   conversionCost Float    @default(0) // 转化成本
+  roi            Float    @default(0) // ROI
   activations    Int      @default(0) // 激活数
   dailyPayment   Float    @default(0) // 计费当日付费金额
   materialScore  Float    @default(0) // 素材评估

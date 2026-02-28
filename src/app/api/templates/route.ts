@@ -10,6 +10,7 @@ function calculateMetricsSummary(dailyMetrics: Array<{
   clickRate: number
   cpm: number
   conversions: number
+  roi: number
   activations: number
   dailyPayment: number
   materialScore: number
@@ -21,6 +22,7 @@ function calculateMetricsSummary(dailyMetrics: Array<{
       avgClickRate: 0,
       avgCpm: 0,
       totalConversions: 0,
+      avgRoi: 0,
       totalActivations: 0,
       totalDailyPayment: 0,
       avgMaterialScore: 0,
@@ -35,6 +37,10 @@ function calculateMetricsSummary(dailyMetrics: Array<{
   const avgClickRate = dailyMetrics.reduce((sum, m) => sum + m.clickRate, 0) / dailyMetrics.length
   const avgCpm = dailyMetrics.reduce((sum, m) => sum + m.cpm, 0) / dailyMetrics.length
   const avgMaterialScore = dailyMetrics.reduce((sum, m) => sum + m.materialScore, 0) / dailyMetrics.length
+  // ROI 加权平均：sum(cost × roi) / sum(cost)
+  const avgRoi = totalCost > 0
+    ? dailyMetrics.reduce((sum, m) => sum + m.cost * m.roi, 0) / totalCost
+    : 0
 
   return {
     totalCost,
@@ -42,6 +48,7 @@ function calculateMetricsSummary(dailyMetrics: Array<{
     avgClickRate,
     avgCpm,
     totalConversions,
+    avgRoi,
     totalActivations,
     totalDailyPayment,
     avgMaterialScore,
