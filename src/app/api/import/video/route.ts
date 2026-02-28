@@ -3,10 +3,20 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import crypto from 'crypto'
 
-const JSON_HEADERS = { 'Content-Type': 'application/json; charset=utf-8' }
+const CORS_HEADERS = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'x-api-key, content-type',
+}
 
 function jsonResponse(data: unknown, status: number = 200) {
-  return new NextResponse(JSON.stringify(data), { status, headers: JSON_HEADERS })
+  return new NextResponse(JSON.stringify(data), { status, headers: CORS_HEADERS })
+}
+
+// 处理 OPTIONS 预检请求
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS })
 }
 
 // COS 配置
