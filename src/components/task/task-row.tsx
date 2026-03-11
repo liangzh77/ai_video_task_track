@@ -440,6 +440,21 @@ export function TaskRow({
                   }}
                   disabled={!canEdit}
                   cardSize={cardSize}
+                  bridgeUploaded={task.bridgeUploaded}
+                  onBridgeUpload={task.videoUrl ? async () => {
+                    const res = await fetch('/api/bridge/upload', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ type: 'task', id: task.id }),
+                    })
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({}))
+                      throw new Error(err.error || '上传失败')
+                    }
+                    if (onTaskUpdate) {
+                      onTaskUpdate(task.id, { bridgeUploaded: true })
+                    }
+                  } : undefined}
                 />
               }
             />

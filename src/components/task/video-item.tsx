@@ -8,11 +8,14 @@ interface VideoItemProps {
   onUpdate: (videoUrl: string | null) => Promise<void>
   disabled?: boolean
   cardSize?: number
+  bridgeUploaded?: boolean
+  onBridgeUpload?: () => Promise<void>
 }
 
-export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60 }: VideoItemProps) {
+export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60, bridgeUploaded = false, onBridgeUpload }: VideoItemProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isBridgeUploading, setIsBridgeUploading] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -408,6 +411,52 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60 
                 title="删除"
               >
                 ×
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 左下角：Bridge 上传按钮 */}
+        {onBridgeUpload && !showDeleteConfirm && (
+          <div className="absolute bottom-1 left-1">
+            {bridgeUploaded ? (
+              <div
+                className="w-5 h-5 bg-green-500 text-white rounded-full text-xs flex items-center justify-center opacity-70"
+                title="已上传到素材库"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            ) : isBridgeUploading ? (
+              <div
+                className="w-5 h-5 bg-blue-400 text-white rounded-full text-xs flex items-center justify-center animate-pulse"
+                title="上传中..."
+              >
+                <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.stopPropagation()
+                  setIsBridgeUploading(true)
+                  try {
+                    await onBridgeUpload()
+                  } catch (error) {
+                    console.error('Bridge 上传失败:', error)
+                  } finally {
+                    setIsBridgeUploading(false)
+                  }
+                }}
+                className="w-5 h-5 bg-blue-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="上传到素材库"
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
               </button>
             )}
           </div>

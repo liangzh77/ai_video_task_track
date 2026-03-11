@@ -18,6 +18,7 @@ export interface Template {
   name: string
   items: ContentItem[]
   videoUrl: string | null
+  bridgeUploaded: boolean
   notes: string
   order: number
   createdAt: string
@@ -60,6 +61,7 @@ export interface Task {
   templateId: string
   items: ContentItem[]
   videoUrl: string | null
+  bridgeUploaded: boolean
   materialId: string
   notes: string
   feedback: string

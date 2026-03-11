@@ -40,7 +40,8 @@ model Template {
   id        String   @id @default(cuid())
   name      String
   items     Json     @default("[]") // Array of { type: 'image' | 'text', content: string }
-  videoUrl  String?  // 视频URL，存储在腾讯COS
+  videoUrl        String?  // 视频URL，存储在腾讯COS
+  bridgeUploaded  Boolean  @default(false) // 是否已上传到桥段素材库
   notes     String   @default("") // 模板备注
   order     Int      @default(0)
   createdAt DateTime @default(now())
@@ -56,7 +57,8 @@ model Task {
   id            String    @id @default(cuid())
   templateId    String
   items         Json      @default("[]") // Array of { type: 'image' | 'text', content: string }
-  videoUrl      String?   // 视频URL，存储在腾讯COS
+  videoUrl        String?   // 视频URL，存储在腾讯COS
+  bridgeUploaded  Boolean   @default(false) // 是否已上传到桥段素材库
   materialId    String    @default("")
   notes         String    @default("")
   feedback      String    @default("") // 反馈

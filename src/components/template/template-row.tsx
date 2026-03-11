@@ -32,6 +32,62 @@ export function TemplateRow({
   const [isEditingName, setIsEditingName] = useState(false)
   const [editName, setEditName] = useState(template.name)
   const nameInputRef = useRef<HTMLInputElement>(null)
+  const [isBatchUploading, setIsBatchUploading] = useState(false)
+
+  // 计算上传计数
+  const bridgeUploadedCount = (() => {
+    let count = 0
+    if (template.videoUrl && template.bridgeUploaded) count++
+    if (template.tasks) {
+      count += template.tasks.filter(t => t.videoUrl && t.bridgeUploaded).length
+    }
+    return count
+  })()
+
+  // 有视频但未上传的列表
+  const pendingUploads = (() => {
+    const list: { type: 'template' | 'task'; id: string }[] = []
+    if (template.videoUrl && !template.bridgeUploaded) {
+      list.push({ type: 'template', id: template.id })
+    }
+    if (template.tasks) {
+      for (const t of template.tasks) {
+        if (t.videoUrl && !t.bridgeUploaded) {
+          list.push({ type: 'task', id: t.id })
+        }
+      }
+    }
+    return list
+  })()
+
+  const handleBatchBridgeUpload = async () => {
+    if (pendingUploads.length === 0) return
+    setIsBatchUploading(true)
+    try {
+      for (const item of pendingUploads) {
+        const res = await fetch('/api/bridge/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        })
+        if (res.ok || res.status === 409) {
+          if (item.type === 'template' && onTemplateUpdate) {
+            onTemplateUpdate(template.id, { bridgeUploaded: true })
+          } else if (item.type === 'task' && onTemplateUpdate) {
+            // 更新任务的 bridgeUploaded
+            const updatedTasks = template.tasks?.map(t =>
+              t.id === item.id ? { ...t, bridgeUploaded: true } : t
+            )
+            onTemplateUpdate(template.id, { tasks: updatedTasks })
+          }
+        }
+      }
+    } catch (error) {
+      console.error('批量上传失败:', error)
+    } finally {
+      setIsBatchUploading(false)
+    }
+  }
 
   // 同步模板名称
   useEffect(() => {
@@ -375,6 +431,20 @@ export function TemplateRow({
                   <span className="text-blue-600">{template.tasks.filter(t => t.isSubmitted).length}</span>
                 </span>
               )}
+              {bridgeUploadedCount > 0 && (
+                <span className="text-xs text-purple-600 flex-shrink-0">上传 {bridgeUploadedCount}</span>
+              )}
+              {pendingUploads.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleBatchBridgeUpload}
+                  disabled={isBatchUploading}
+                  className="text-xs text-purple-500 hover:text-purple-700 flex-shrink-0"
+                  title="批量上传到素材库"
+                >
+                  {isBatchUploading ? '...' : '↑全部'}
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -407,6 +477,20 @@ export function TemplateRow({
                       <span className="text-blue-600">{template.tasks.filter(t => t.isSubmitted).length}</span>
                     </span>
                   )}
+                  {bridgeUploadedCount > 0 && (
+                    <span className="text-purple-600 flex-shrink-0 ml-1">上传 {bridgeUploadedCount}</span>
+                  )}
+                  {pendingUploads.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleBatchBridgeUpload() }}
+                      disabled={isBatchUploading}
+                      className="text-purple-500 hover:text-purple-700 flex-shrink-0 ml-1"
+                      title="批量上传到素材库"
+                    >
+                      {isBatchUploading ? '...' : '↑全部'}
+                    </button>
+                  )}
                 </div>
               ) : (
                 /* 默认尺寸：备注单独一行，批准/提交单独一行 */
@@ -432,6 +516,22 @@ export function TemplateRow({
                       <span className="text-blue-600">
                         提交 {template.tasks.filter(t => t.isSubmitted).length}
                       </span>
+                      {bridgeUploadedCount > 0 && (
+                        <span className="text-purple-600">
+                          上传 {bridgeUploadedCount}
+                        </span>
+                      )}
+                      {pendingUploads.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleBatchBridgeUpload}
+                          disabled={isBatchUploading}
+                          className="text-purple-500 hover:text-purple-700"
+                          title="批量上传到素材库"
+                        >
+                          {isBatchUploading ? '上传中...' : '↑全部上传'}
+                        </button>
+                      )}
                     </div>
                   )}
                 </>
@@ -455,6 +555,21 @@ export function TemplateRow({
                 onUpdate={updateVideoUrl}
                 disabled={!canEdit}
                 cardSize={cardSize}
+                bridgeUploaded={template.bridgeUploaded}
+                onBridgeUpload={template.videoUrl ? async () => {
+                  const res = await fetch('/api/bridge/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'template', id: template.id }),
+                  })
+                  if (!res.ok) {
+                    const err = await res.json().catch(() => ({}))
+                    throw new Error(err.error || '上传失败')
+                  }
+                  if (onTemplateUpdate) {
+                    onTemplateUpdate(template.id, { bridgeUploaded: true })
+                  }
+                } : undefined}
               />
             }
           />
