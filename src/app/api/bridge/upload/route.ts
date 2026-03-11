@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import crypto from 'crypto'
 
+// Vercel serverless 超时设置（秒）- 下载+转发视频需要较长时间
+export const maxDuration = 60
+
 const BRIDGE_API_URL = process.env.BRIDGE_API_URL || 'http://82.157.178.120:9999/api/open'
 
 const COS_CONFIG = {

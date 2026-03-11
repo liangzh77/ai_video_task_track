@@ -2,7 +2,7 @@
 
 ## 基础信息
 
-- **Base URL**: `http://<服务器IP>:9999/api/open`
+- **Base URL**: `http://82.157.178.120:9999/api/open`
 - **认证方式**: 无需认证
 - **内容格式**: `multipart/form-data`
 
