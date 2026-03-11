@@ -48,5 +48,6 @@ coverage/
 # Misc
 *.log
 *.tmp
+log.txt
 
 /src/generated/prisma
