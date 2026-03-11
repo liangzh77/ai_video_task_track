@@ -64,6 +64,9 @@ export function TemplateRow({
     if (pendingUploads.length === 0) return
     setIsBatchUploading(true)
     try {
+      let templateUploaded = template.bridgeUploaded
+      const taskUploadedSet = new Set<string>()
+
       for (const item of pendingUploads) {
         const res = await fetch('/api/bridge/upload', {
           method: 'POST',
@@ -71,16 +74,23 @@ export function TemplateRow({
           body: JSON.stringify(item),
         })
         if (res.ok || res.status === 409) {
-          if (item.type === 'template' && onTemplateUpdate) {
-            onTemplateUpdate(template.id, { bridgeUploaded: true })
-          } else if (item.type === 'task' && onTemplateUpdate) {
-            // 更新任务的 bridgeUploaded
-            const updatedTasks = template.tasks?.map(t =>
-              t.id === item.id ? { ...t, bridgeUploaded: true } : t
-            )
-            onTemplateUpdate(template.id, { tasks: updatedTasks })
+          if (item.type === 'template') {
+            templateUploaded = true
+          } else {
+            taskUploadedSet.add(item.id)
           }
         }
+      }
+
+      // 一次性更新所有状态
+      if (onTemplateUpdate) {
+        const updatedTasks = template.tasks?.map(t =>
+          taskUploadedSet.has(t.id) ? { ...t, bridgeUploaded: true } : t
+        )
+        onTemplateUpdate(template.id, {
+          bridgeUploaded: templateUploaded,
+          tasks: updatedTasks,
+        })
       }
     } catch (error) {
       console.error('批量上传失败:', error)
