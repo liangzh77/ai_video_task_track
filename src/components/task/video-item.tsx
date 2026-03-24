@@ -15,6 +15,8 @@ interface VideoItemProps {
 export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60, bridgeUploaded = false, onBridgeUpload }: VideoItemProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [pendingFileUrl, setPendingFileUrl] = useState<string | null>(null)
   const [isBridgeUploading, setIsBridgeUploading] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -143,6 +145,8 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60,
 
     setIsUploading(true)
     setUploadProgress(0)
+    setUploadError(null)
+    setPendingFileUrl(null)
 
     try {
       // 1. 获取预签名 URL
@@ -186,9 +190,17 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60,
       })
 
       // 3. 保存视频 URL 到任务
-      await onUpdate(fileUrl)
+      try {
+        await onUpdate(fileUrl)
+      } catch (saveError) {
+        console.error('保存视频 URL 失败:', saveError)
+        // 视频已上传到 COS，但保存到数据库失败，保留 URL 供重试
+        setPendingFileUrl(fileUrl)
+        setUploadError('视频已上传，但保存失败，请点击重试')
+      }
     } catch (error) {
       console.error('上传视频失败:', error)
+      setUploadError('上传失败，请重试')
     } finally {
       setIsUploading(false)
       setUploadProgress(0)
@@ -315,6 +327,7 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60,
           relative flex-shrink-0 rounded border-2 border-dashed
           flex items-center justify-center text-center
           ${disabled ? 'border-gray-200 bg-gray-50 text-gray-300' :
+            uploadError ? 'border-red-400 bg-red-50' :
             isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'}
           ${isUploading ? 'pointer-events-none' : ''}
         `}
@@ -332,6 +345,27 @@ export function VideoItem({ videoUrl, onUpdate, disabled = false, cardSize = 60,
               />
             </div>
             <span className="text-xs text-gray-500">{uploadProgress}%</span>
+          </div>
+        ) : uploadError ? (
+          <div className="flex flex-col items-center gap-1 px-1">
+            <span className="text-xs text-red-500 leading-tight">{uploadError}</span>
+            {pendingFileUrl && (
+              <button
+                type="button"
+                className="text-xs text-blue-500 underline hover:text-blue-700"
+                onClick={async () => {
+                  setUploadError(null)
+                  try {
+                    await onUpdate(pendingFileUrl)
+                    setPendingFileUrl(null)
+                  } catch {
+                    setUploadError('保存失败，请重试')
+                  }
+                }}
+              >
+                重试
+              </button>
+            )}
           </div>
         ) : (
           <span className="text-xs text-gray-400 px-1">
